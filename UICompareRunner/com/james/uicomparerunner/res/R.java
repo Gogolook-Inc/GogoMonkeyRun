@@ -38,7 +38,7 @@ public class R {
 		public static final String dialog_alert_choose_a_device = Locale.getDefault().equals(Locale.TAIWAN) ? "請連結手機或是模擬器，並選擇其中一支為預設裝置"
 				: "Please confirm that any emulator/device is connected.\n Select a Device.";
 		public static final String dialog_alert_no_devices = Locale.getDefault().equals(Locale.TAIWAN) ? "請確認是否已連接任何手機裝置或模擬器" : "Please confirm that any emulator/device is connected.";
-		public static final String dialog_alert_find_action_file = "請選擇從\"monkey recorder模擬器\"中匯出的紀錄檔來產生腳本(副檔名為.mr)";
+		public static final String dialog_alert_find_action_file = Locale.getDefault().equals(Locale.TAIWAN) ? "請選擇從\"monkey recorder模擬器\"中匯出的紀錄檔來產生腳本(副檔名為.mr)" : "";
 		public static final String dialog_alert_create_script_ok = "產生腳本成功，是否繼續編輯記錄檔";
 		public static final String dialog_alert_file_disappear = "選擇檔案不存在，請重新確認";
 		public static final String dialog_alert_create_a_new_script = "目前沒有測試腳本，是否產生一份新腳本?";
