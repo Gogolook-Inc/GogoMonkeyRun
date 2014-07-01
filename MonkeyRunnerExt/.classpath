@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/Applications/adt-bundle-mac-x86_64-20140321/sdk/tools/lib/chimpchat.jar"/>
+	<classpathentry kind="lib" path="/Applications/adt-bundle-mac-x86_64-20140321/sdk/tools/lib/guava-15.0.jar"/>
+	<classpathentry kind="lib" path="/Applications/adt-bundle-mac-x86_64-20140321/sdk/tools/lib/jython-standalone-2.5.3.jar"/>
+	<classpathentry kind="lib" path="/Applications/adt-bundle-mac-x86_64-20140321/sdk/tools/lib/monkeyrunner.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
