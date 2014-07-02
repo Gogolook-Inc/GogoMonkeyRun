@@ -15,7 +15,7 @@ public class R {
 		public static final String menu_file_generate_script = Locale.getDefault().equals(Locale.TAIWAN) ? "產生新紀錄檔與腳本" : "Generate a New Action Record";
 		public static final String menu_file_edit_recorder = Locale.getDefault().equals(Locale.TAIWAN) ? "編輯紀錄檔" : "Edit Action Record";
 		public static final String menu_file_choose_script = Locale.getDefault().equals(Locale.TAIWAN) ? "選擇腳本" : "Choose Scripts";
-		public static final String menu_file_run_last_script = Locale.getDefault().equals(Locale.TAIWAN) ? "執行上次腳本" : "Execute Last Scripts";
+		public static final String menu_file_run_last_script = Locale.getDefault().equals(Locale.TAIWAN) ? "執行上次腳本" : "Run Last Scripts";
 		public static final String menu_file_show_last_result = Locale.getDefault().equals(Locale.TAIWAN) ? "重看上次比較結果" : "Review Last Result";
 		public static final String menu_file_clear = Locale.getDefault().equals(Locale.TAIWAN) ? "清除" : "Clear";
 		public static final String menu_file_close = Locale.getDefault().equals(Locale.TAIWAN) ? "關閉" : "Close";
@@ -38,34 +38,34 @@ public class R {
 		public static final String dialog_alert_choose_a_device = Locale.getDefault().equals(Locale.TAIWAN) ? "請連結手機或是模擬器，並選擇其中一支為預設裝置"
 				: "Please confirm that any emulator/device is connected.\n Select a Device.";
 		public static final String dialog_alert_no_devices = Locale.getDefault().equals(Locale.TAIWAN) ? "請確認是否已連接任何手機裝置或模擬器" : "Please confirm that any emulator/device is connected.";
-		public static final String dialog_alert_find_action_file = Locale.getDefault().equals(Locale.TAIWAN) ? "請選擇從\"monkey recorder模擬器\"中匯出的紀錄檔來產生腳本(副檔名為.mr)" : "";
-		public static final String dialog_alert_create_script_ok = "產生腳本成功，是否繼續編輯記錄檔";
-		public static final String dialog_alert_file_disappear = "選擇檔案不存在，請重新確認";
-		public static final String dialog_alert_create_a_new_script = "目前沒有測試腳本，是否產生一份新腳本?";
-		public static final String dialog_alert_open_monkey_recorder = "按下確定後會開啟 monkey recorder，\n記錄完測試流程後記得按下\"Export Actions\"儲存紀錄，\n副檔名須為.mr";
-		public static final String dialog_alert_set_as_target = "是否設定此圖片為正確結果?";
-		public static final String dialog_alert_set_as_target_success = "已成功替換目標";
-		public static final String dialog_alert_save_success = "儲存成功";
-		public static final String dialog_alert_input_number = "請輸入數字";
-		public static final String dialog_alert_input_package_name = "請輸入Package Name";
-		public static final String dialog_alert_package_name_error = "Package Name不存在，請重新確認";
-		public static final String dialog_alert_save_before_leaving = "是否儲存？";
-		public static final String dialog_alert_run_last_script = "執行上次腳本";
-		public static final String dialog_alert_run_script = "執行腳本";
+		public static final String dialog_alert_find_action_file = Locale.getDefault().equals(Locale.TAIWAN) ? "請選擇從\"monkey recorder模擬器\"中匯出的紀錄檔來產生腳本(副檔名為.mr)"
+				: "Please generate a script from a record(.mr).";
+		public static final String dialog_alert_create_script_ok = Locale.getDefault().equals(Locale.TAIWAN) ? "產生腳本成功，是否繼續編輯記錄檔" : "Complete Initializing Script. Continue to Edit Record?";
+		public static final String dialog_alert_file_disappear = Locale.getDefault().equals(Locale.TAIWAN) ? "選擇檔案不存在，請重新確認" : "The File is missing.";
+		public static final String dialog_alert_create_a_new_script = Locale.getDefault().equals(Locale.TAIWAN) ? "目前沒有測試腳本，是否產生一份新腳本?" : "No Scripts so far. Wouls you like to generate a new one?";
+		public static final String dialog_alert_set_as_target = Locale.getDefault().equals(Locale.TAIWAN) ? "是否設定此圖片為正確結果?" : "Set this picture as a correct one?";
+		public static final String dialog_alert_set_as_target_success = Locale.getDefault().equals(Locale.TAIWAN) ? "已成功替換目標" : "Replace Complete.";
+		public static final String dialog_alert_save_success = Locale.getDefault().equals(Locale.TAIWAN) ? "儲存成功" : "Save Complete";
+		public static final String dialog_alert_input_number = Locale.getDefault().equals(Locale.TAIWAN) ? "請輸入數字" : "Input a number";
+		public static final String dialog_alert_input_package_name = Locale.getDefault().equals(Locale.TAIWAN) ? "請輸入Package Name" : "Please input Package Name";
+		public static final String dialog_alert_package_name_error = Locale.getDefault().equals(Locale.TAIWAN) ? "Package Name不存在，請重新確認" : "Package Name is not correct.";
+		public static final String dialog_alert_save_before_leaving = Locale.getDefault().equals(Locale.TAIWAN) ? "是否儲存？" : "Save change?";
+		public static final String dialog_alert_run_last_script = Locale.getDefault().equals(Locale.TAIWAN) ? "執行上次腳本" : "Run the last script";
+		public static final String dialog_alert_run_script = Locale.getDefault().equals(Locale.TAIWAN) ? "執行腳本" : "Run the script";
 
-		public static final String text_target = "正確截圖";
-		public static final String text_test = "對照截圖";
-		public static final String text_comparison = "比較結果";
+		public static final String text_target = Locale.getDefault().equals(Locale.TAIWAN) ? "正確截圖" : "Target";
+		public static final String text_test = Locale.getDefault().equals(Locale.TAIWAN) ? "對照截圖" : "Test";
+		public static final String text_comparison = Locale.getDefault().equals(Locale.TAIWAN) ? "比較結果" : "Result";
 
-		public static final String button_start_from_desktop = "從桌面開始測試";
-		public static final String button_end_to_desktop = "結束返回桌面";
-		public static final String button_add_while = "設定迴圈";
-		public static final String button_save = "儲存腳本(script)";
-		public static final String button_edit_preference = "編輯資料";
-		public static final String button_clear_data = "清除資料";
-		public static final String button_add_script = "增加腳本";
-		public static final String button_remove_last_script = "取消上一步";
-		public static final String button_clear_script = "清除腳本";
-		public static final String button_run_script = "執行腳本";
+		public static final String button_start_from_desktop = Locale.getDefault().equals(Locale.TAIWAN) ? "從桌面開始測試" : "Start from Desktop";
+		public static final String button_end_to_desktop = Locale.getDefault().equals(Locale.TAIWAN) ? "結束返回桌面" : "Return to Desktop at the End";
+		public static final String button_add_while = Locale.getDefault().equals(Locale.TAIWAN) ? "設定迴圈" : "Set a Loop";
+		public static final String button_save = Locale.getDefault().equals(Locale.TAIWAN) ? "儲存腳本(script)" : "Save Script";
+		public static final String button_edit_preference = Locale.getDefault().equals(Locale.TAIWAN) ? "編輯資料" : "Edit Data";
+		public static final String button_clear_data = Locale.getDefault().equals(Locale.TAIWAN) ? "清除資料" : "Clear Data";
+		public static final String button_add_script = Locale.getDefault().equals(Locale.TAIWAN) ? "增加腳本" : "Add a Script";
+		public static final String button_remove_last_script = Locale.getDefault().equals(Locale.TAIWAN) ? "取消上一步" : "Cancel the Last Script";
+		public static final String button_clear_script = Locale.getDefault().equals(Locale.TAIWAN) ? "清除腳本" : "Clear all";
+		public static final String button_run_script = Locale.getDefault().equals(Locale.TAIWAN) ? "執行腳本" : "Run Script";
 	}
 }

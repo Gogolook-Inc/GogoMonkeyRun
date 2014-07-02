@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -23,7 +24,6 @@ import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -37,7 +37,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
@@ -88,12 +87,10 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 	private JButton waitButton = null;
 	private JButton pressButton = null;
 	private JButton typeButton = null;
-	private JButton flingButton = null;
 	private JButton exportActionButton = null;
 	private JButton snapshotActionButton = null;
 	private JButton resetActionButton = null;
 	private JButton rotateButton = null;
-	private JButton refreshButton = null;
 	private JLabel textLabel = null;
 	private BufferedImage currentImage; // @jve:decl-index=0:
 	private BufferedImage scaledImage = new BufferedImage(scaleSize * 3 / 4, scaleSize,
@@ -107,6 +104,10 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 			refreshDisplay(); // @jve:decl-index=0:
 		}
 	});
+
+	private boolean isFling = false;
+	private Point flingStartPoint = new Point();
+	private Point flingEndPoint = new Point();
 
 	/**
 	 * This is the default constructor
@@ -164,7 +165,7 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 			int scaleWidth = width * scaleSize / height;
 			int scaleHeight = scaleSize;
 			display.setPreferredSize(new Dimension(scaleWidth, scaleHeight));
-			if (scaledImage.getWidth() != scaleWidth && scaledImage.getHeight() != scaleHeight) {
+			if (scaledImage.getWidth() != scaleWidth || scaledImage.getHeight() != scaleHeight) {
 				scaledImage = new BufferedImage(scaleWidth, scaleHeight, BufferedImage.TYPE_INT_ARGB);
 			}
 
@@ -184,10 +185,10 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 			int scaleWidth = scaleSize;
 			int scaleHeight = height * scaleSize / width;
 			display.setPreferredSize(new Dimension(scaleWidth, scaleHeight));
-			if (scaledImage.getWidth() != scaleWidth && scaledImage.getHeight() != scaleHeight) {
+			if (scaledImage.getWidth() != scaleWidth || scaledImage.getHeight() != scaleHeight) {
 				scaledImage = new BufferedImage(scaleWidth, scaleHeight, BufferedImage.TYPE_INT_ARGB);
 			}
-			if (currentImage.getWidth() != width && currentImage.getHeight() != height) {
+			if (currentImage.getWidth() != width || currentImage.getHeight() != height) {
 				currentImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 			}
 
@@ -230,7 +231,7 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout());
 
-		// TODO
+		//
 		display = new JLabel();
 		panel.add(display, BorderLayout.CENTER);
 
@@ -239,6 +240,35 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 			@Override
 			public void mouseClicked(MouseEvent event) {
 				touch(event);
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent event) {
+				if (isFling) {
+					double scalex = ((double) currentImage.getWidth()) / ((double) scaledImage.getWidth());
+					double scaley = ((double) currentImage.getHeight()) / ((double) scaledImage.getHeight());
+					int x = (int) (event.getX() * scalex);
+					int y = (int) (event.getY() * scaley);
+
+					flingEndPoint.x = x;
+					flingEndPoint.y = y;
+
+					DragAction dragAction = newDragAction(flingStartPoint, flingEndPoint, 300);
+					if (dragAction != null)
+						addAction(dragAction);
+				}
+				isFling = false;
+			}
+
+			@Override
+			public void mousePressed(MouseEvent event) {
+				double scalex = ((double) currentImage.getWidth()) / ((double) scaledImage.getWidth());
+				double scaley = ((double) currentImage.getHeight()) / ((double) scaledImage.getHeight());
+				int x = (int) (event.getX() * scalex);
+				int y = (int) (event.getY() * scaley);
+
+				flingStartPoint.x = x;
+				flingStartPoint.y = y;
 			}
 		});
 
@@ -251,9 +281,10 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 
 			@Override
 			public void mouseDragged(MouseEvent event) {
-				// TODO
+				isFling = true;
 			}
 		});
+
 		return panel;
 	}
 
@@ -297,7 +328,6 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 			horizontalBox1.add(getExportActionButton());
 			horizontalBox1.add(getPressButton());
 			horizontalBox1.add(getTypeButton());
-			horizontalBox1.add(getFlingButton());
 
 			Box horizontalBox2 = Box.createHorizontalBox();
 			actionPanel.add(horizontalBox2);
@@ -305,7 +335,7 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 			horizontalBox2.add(getSnapshotActionButton());
 			horizontalBox2.add(getRemoveActionButton());
 			horizontalBox2.add(getRotateButton());
-			//			horizontalBox2.add(getRefreshButton());
+			// horizontalBox2.add(getRefreshButton());
 
 			actionPanel.add(getTextLabel());
 		}
@@ -390,78 +420,33 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 		return typeButton;
 	}
 
-	/**
-	 * This method initializes flingButton
-	 * 
-	 * @return javax.swing.JButton
-	 */
-	private JButton getFlingButton() {
-		if (flingButton == null) {
-			flingButton = new JButton();
-			flingButton.setText(R.string.button_filng);
-			flingButton.addActionListener(new java.awt.event.ActionListener() {
-				@Override
-				public void actionPerformed(java.awt.event.ActionEvent e) {
-					JPanel panel = new JPanel();
-					panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-					panel.add(new JLabel(R.string.text_which_direction));
-					JComboBox directionChooser = new JComboBox(DragAction.Direction.getNames());
-					panel.add(directionChooser);
-					panel.add(new JLabel(R.string.text_how_long_to_drag));
-					JTextField ms = new JTextField();
-					ms.setText("1000");
-					panel.add(ms);
-					panel.add(new JLabel(R.string.text_how_many_steps));
-					JTextField steps = new JTextField();
-					steps.setText("10");
-					panel.add(steps);
-					int result = JOptionPane.showConfirmDialog(null, panel, "Input", JOptionPane.OK_CANCEL_OPTION);
-					if (result == JOptionPane.OK_OPTION) {
-						DragAction.Direction dir = DragAction.Direction.valueOf((String) directionChooser.getSelectedItem());
-						long millis = Long.parseLong(ms.getText());
-						int numSteps = Integer.parseInt(steps.getText());
-						addAction(newFlingAction(dir, numSteps, millis));
-					}
-				}
-			});
-		}
-		return flingButton;
-	}
+	private DragAction newDragAction(Point startPoint, Point endPoint, long millis) {
+		// TODO
+		int width = Integer.parseInt(device.getProperty(orientation == PORTRAIT ? "display.width" : "display.height"));
+		int height = Integer.parseInt(device.getProperty(orientation == PORTRAIT ? "display.height" : "display.width"));
 
-	private DragAction newFlingAction(Direction dir, int numSteps, long millis) {
-		int width = Integer.parseInt(device.getProperty("display.width"));
-		int height = Integer.parseInt(device.getProperty("display.height"));
-		// Adjust the w/h to a pct of the total size, so we don't hit things on
-		// the "outside"
-		width = (int) (width * 0.8f);
-		height = (int) (height * 0.8f);
-		int minW = (int) (width * 0.2f);
-		int minH = (int) (height * 0.2f);
-		int midWidth = width / 2;
-		int midHeight = height / 2;
-		int startx = minW;
-		int starty = minH;
-		int endx = minW;
-		int endy = minH;
-		switch (dir) {
-			case NORTH:
-				startx = endx = midWidth;
-				starty = height;
-				break;
-			case SOUTH:
-				startx = endx = midWidth;
-				endy = height;
-				break;
-			case EAST:
-				starty = endy = midHeight;
-				endx = width;
-				break;
-			case WEST:
-				starty = endy = midHeight;
-				startx = width;
-				break;
+		Direction dir = Direction.NORTH;
+		if (Math.abs(startPoint.x - endPoint.x) > width / 5) {
+			if (startPoint.x >= endPoint.x) {
+				dir = Direction.WEST;
+			}
+			else if (startPoint.x < endPoint.x) {
+				dir = Direction.EAST;
+			}
 		}
-		return new DragAction(dir, startx, starty, endx, endy, numSteps, millis);
+		else if (Math.abs(startPoint.y - endPoint.y) > height / 5) {
+			if (startPoint.y >= endPoint.y) {
+				dir = Direction.NORTH;
+			}
+			else if (startPoint.y < endPoint.y) {
+				dir = Direction.SOUTH;
+			}
+		}
+		else {
+			return null;
+		}
+
+		return new DragAction(dir, startPoint.x, startPoint.y, endPoint.x, endPoint.y, 1, millis);
 	}
 
 	/**
@@ -540,25 +525,6 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 		return rotateButton;
 	}
 
-	/**
-	 * This method initializes refreshButton
-	 * 
-	 * @return javax.swing.JButton
-	 */
-	private JButton getRefreshButton() {
-		if (refreshButton == null) {
-			refreshButton = new JButton();
-			refreshButton.setText(R.string.button_refresh_display);
-			refreshButton.addActionListener(new java.awt.event.ActionListener() {
-				@Override
-				public void actionPerformed(java.awt.event.ActionEvent e) {
-					refreshDisplay();
-				}
-			});
-		}
-		return refreshButton;
-	}
-
 	private JPanel getTextLabel() {
 		JPanel panel = new JPanel();
 		panel.setBorder(
@@ -574,6 +540,7 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 	}
 
 	private void touch(MouseEvent event) {
+		// TODO
 		int x = event.getX();
 		int y = event.getY();
 		// Since we scaled the image down, our x/y are scaled as well.
@@ -583,28 +550,13 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 		y = (int) (y * scaley);
 		switch (event.getID()) {
 			case MouseEvent.MOUSE_CLICKED:
-				if (orientation == PORTRAIT) {
-					addAction(new TouchAction(x, y, MonkeyDevice.DOWN_AND_UP));
-				}
-				else if (orientation == LANDSCAPE) {
-					addAction(new TouchAction(currentImage.getHeight() - y, x, MonkeyDevice.DOWN_AND_UP));
-				}
+				addAction(new TouchAction(x, y, MonkeyDevice.DOWN_AND_UP));
 				break;
 			case MouseEvent.MOUSE_PRESSED:
-				if (orientation == PORTRAIT) {
-					addAction(new TouchAction(x, y, MonkeyDevice.DOWN));
-				}
-				else if (orientation == LANDSCAPE) {
-					addAction(new TouchAction(currentImage.getHeight() - y, x, MonkeyDevice.DOWN));
-				}
+				addAction(new TouchAction(x, y, MonkeyDevice.DOWN));
 				break;
 			case MouseEvent.MOUSE_RELEASED:
-				if (orientation == PORTRAIT) {
-					addAction(new TouchAction(x, y, MonkeyDevice.UP));
-				}
-				else if (orientation == LANDSCAPE) {
-					addAction(new TouchAction(currentImage.getHeight() - y, x, MonkeyDevice.UP));
-				}
+				addAction(new TouchAction(x, y, MonkeyDevice.UP));
 				break;
 		}
 	}
@@ -624,11 +576,23 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 	public void addAction(Action a) {
 		actions.add(a);
 		actionListModel.add(a);
+		scrollToBottom();
 		try {
 			a.execute(device);
 		} catch (Exception e) {
 			LOG.log(Level.SEVERE, "Unable to execute action!", e);
 		}
+	}
+
+	private void scrollToBottom() {
+		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				int lastIndex = historyList.getModel().getSize() - 1;
+				if (lastIndex >= 0) {
+					historyList.ensureIndexIsVisible(lastIndex);
+				}
+			}
+		});
 	}
 
 	private void resetLastAction() {

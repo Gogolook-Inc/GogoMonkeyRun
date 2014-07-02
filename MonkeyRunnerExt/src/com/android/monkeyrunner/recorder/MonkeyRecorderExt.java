@@ -25,8 +25,8 @@ public class MonkeyRecorderExt {
 	 * Jython entry point for MonkeyRecorder. Meant to be called like this:
 	 * <code>
 	 * from com.android.monkeyrunner import MonkeyRunner as mr
-	 * from com.android.monkeyrunner import MonkeyRecorder
-	 * MonkeyRecorder.start(mr.waitForConnection())
+	 * from com.android.monkeyrunner import MonkeyRecorderExt
+	 * MonkeyRecorderExt.start(mr.waitForConnection())
 	 * </code>
 	 * 
 	 * @param device

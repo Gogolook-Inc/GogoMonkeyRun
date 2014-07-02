@@ -236,8 +236,6 @@ public class UICompareRunner {
 			return;
 		}
 
-		DialogBuilder.showMessageDialog(uiCompareFrame, R.string.dialog_alert_open_monkey_recorder);
-
 		//
 		setLabelText("start record actions...");
 		SystemUtils.exec(monkey_runner + " " + monkey_recorder_file_path + " " + device + " " + "record" + " " + dir_device, null);
@@ -341,7 +339,7 @@ public class UICompareRunner {
 
 	private static void startMonkeyRunner() {
 		//
-		String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
+		final String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
 		if (device.equalsIgnoreCase(PropertyUtils.NULL)) {
 			setDefaultDevice(true);
 			startMonkeyRunner();
@@ -364,6 +362,9 @@ public class UICompareRunner {
 		}
 
 		uiCompareFrame.removeAll();
+
+		// TODO
+		monitorLogcat();
 
 		for (String currentPath : monkey_runner_file_path) {
 
@@ -606,4 +607,24 @@ public class UICompareRunner {
 		uiCompareFrame.setLabelText(text);
 	}
 
+	private static Thread logcatThread;
+
+	private static void monitorLogcat() {
+		if (logcatThread != null && logcatThread.isAlive()) {
+			logcatThread.interrupt();
+			logcatThread = null;
+		}
+
+		logcatThread = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				final String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
+				// adb -d logcat com.example.example:I *:S
+				// adb logcat | grep adb shell ps | grep your.package.name | cut -c10-15
+				SystemUtils.exec(adb + " -s " + device + " logcat System.err:W *:S", null);
+			}
+		});
+		logcatThread.start();
+	}
 }
