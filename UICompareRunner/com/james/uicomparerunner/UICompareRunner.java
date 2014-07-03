@@ -5,9 +5,12 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -198,7 +201,13 @@ public class UICompareRunner {
 		SystemUtils.exec(adb + " " + "devices", new OnExecCallBack() {
 
 			@Override
-			public void onExec(String response, String error) {
+			public void onExec(String line) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void afterExec(String response, String error) {
 				if (!error.equalsIgnoreCase("")) {
 					DialogBuilder.showMessageDialog(uiCompareFrame, error);
 					return;
@@ -590,7 +599,13 @@ public class UICompareRunner {
 		SystemUtils.exec(UICompareRunner.adb + " shell pm list packages", new OnExecCallBack() {
 
 			@Override
-			public void onExec(String response, String error) {
+			public void onExec(String line) {
+				// TODO Auto-generated method stub
+
+			}
+
+			@Override
+			public void afterExec(String response, String error) {
 				String[] packages = response.split("\n");
 				packaeNames.addAll(new ArrayList<String>(Arrays.asList(packages)));
 			}
@@ -620,9 +635,26 @@ public class UICompareRunner {
 			@Override
 			public void run() {
 				final String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
-				// adb -d logcat com.example.example:I *:S
-				// adb logcat | grep adb shell ps | grep your.package.name | cut -c10-15
-				SystemUtils.exec(adb + " -s " + device + " logcat System.err:W *:S", null);
+				SystemUtils.exec(adb + " -s " + device + " logcat System.err:W *:S", new OnExecCallBack() {
+
+					@Override
+					public void onExec(String line) {
+						if (!line.contains("System.err"))
+							return;
+						try {
+							String path = new File(dir_device).getAbsolutePath();
+							PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(path + "/log.txt", true)));
+							out.println(line);
+							out.close();
+						} catch (IOException e) {
+						}
+					}
+
+					@Override
+					public void afterExec(String response, String error) {
+
+					}
+				});
 			}
 		});
 		logcatThread.start();

@@ -16,7 +16,9 @@ public class SystemUtils {
 	private static String OS = System.getProperty("os.name").toLowerCase();
 
 	public interface OnExecCallBack {
-		public void onExec(String response, String error);
+		public void onExec(String line);
+
+		public void afterExec(String response, String error);
 	}
 
 	public static void init() {
@@ -71,6 +73,9 @@ public class SystemUtils {
 			while ((s = stdInput.readLine()) != null) {
 				System.out.println(s);
 				UICompareRunner.setLabelText(s);
+				if (onExecCallBack != null) {
+					onExecCallBack.onExec(s);
+				}
 				if (response.equalsIgnoreCase("")) {
 					response = s;
 				}
@@ -95,7 +100,7 @@ public class SystemUtils {
 
 			process.destroy();
 			if (onExecCallBack != null)
-				onExecCallBack.onExec(response, error);
+				onExecCallBack.afterExec(response, error);
 		} catch (IOException e) {
 			System.out.println("exception happened - here's what I know: ");
 			e.printStackTrace();
