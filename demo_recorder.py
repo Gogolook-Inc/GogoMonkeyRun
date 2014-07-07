@@ -4,7 +4,7 @@ from com.android.monkeyrunner.recorder import MonkeyRecorder
 
 # start device and recorder
 print ("waitForConnection...")
-device = MonkeyRunner.waitForConnection(5,"CB5A1LY5YK")
+device = MonkeyRunner.waitForConnection(5,"CB5A1N21LE")
 
 if not device:
 	print("device connect...fail")

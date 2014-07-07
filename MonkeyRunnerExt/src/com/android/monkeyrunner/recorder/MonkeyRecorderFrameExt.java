@@ -66,7 +66,7 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 	private final String defaultExportDir;
 	private static final long serialVersionUID = 1L;
 
-	private static int scaleSize = 420;
+	private static int scaleSize = 480;
 
 	private static final int PORTRAIT = 0x1001;
 	private static final int LANDSCAPE = 0x1002;
@@ -220,7 +220,7 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 			jContentPane = new JPanel();
 			jContentPane.setLayout(new BorderLayout());
 			jContentPane.add(getDisplayPanel(), BorderLayout.CENTER);
-			jContentPane.add(getHistoryPanel(), BorderLayout.SOUTH);
+			jContentPane.add(getHistoryPanel(), BorderLayout.EAST);
 			jContentPane.add(getActionPanel(), BorderLayout.NORTH);
 
 		}
