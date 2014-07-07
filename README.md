@@ -16,4 +16,4 @@ For Monkey and MonkeyRunner, we may simulate user actions and take screenshot wi
 
 GogoMonkeyRun, the role of this article, is developed based on Monkey and MonkeyRunner. GogoMonkeyRun does not only make everything visualization, but also solves the weakness of them. If auto-testing includes screenshot, it would compare the result each time running the script. It even can report crash!
 
-See more information, please visit wiki https://github.com/Gogolook-Inc/GogoMonkeyRun#gogomonkeyrun
+See more information, please visit wiki https://github.com/Gogolook-Inc/GogoMonkeyRun/wiki
