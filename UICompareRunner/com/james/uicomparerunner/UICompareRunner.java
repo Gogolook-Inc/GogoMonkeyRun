@@ -312,7 +312,10 @@ public class UICompareRunner {
 
 	private static void loadRecorderAndEdit(String recorderPath) {
 		final String mrPath = recorderPath == null ? DialogBuilder.showFindRecorderFileDialog(uiCompareFrame) : recorderPath;
-		if (mrPath == null || !new File(mrPath).exists()) {
+		if (mrPath == null) {
+			return;
+		}
+		if (!new File(mrPath).exists()) {
 			DialogBuilder.showMessageDialog(uiCompareFrame, R.string.dialog_alert_file_disappear);
 			return;
 		}
