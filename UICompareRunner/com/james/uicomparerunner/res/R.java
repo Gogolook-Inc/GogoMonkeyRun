@@ -23,6 +23,8 @@ public class R {
 
 		public static final String menu_device_reset_device = Locale.getDefault().equals(Locale.TAIWAN) ? "變更預設裝置" : "Select Default Device";
 		public static final String menu_device_reset_package_name = Locale.getDefault().equals(Locale.TAIWAN) ? "變更測試Package Name" : "Change Package Name";
+		public static final String menu_device_random_test = Locale.getDefault().equals(Locale.TAIWAN) ? "隨機測試" : "Random Test";
+		public static final String menu_device_report_error = Locale.getDefault().equals(Locale.TAIWAN) ? "設定crash report E-mail" : "Set E-mail for crash report.";
 
 		public static final String menu_open_editor = Locale.getDefault().equals(Locale.TAIWAN) ? "開啟編輯器" : "Open Editor";
 
@@ -52,6 +54,11 @@ public class R {
 		public static final String dialog_alert_save_before_leaving = Locale.getDefault().equals(Locale.TAIWAN) ? "是否儲存？" : "Save change?";
 		public static final String dialog_alert_run_last_script = Locale.getDefault().equals(Locale.TAIWAN) ? "執行上次腳本" : "Run the last script";
 		public static final String dialog_alert_run_script = Locale.getDefault().equals(Locale.TAIWAN) ? "執行腳本" : "Run the script";
+		public static final String dialog_alert_confirm_set_crash_report = Locale.getDefault().equals(Locale.TAIWAN) ? "是否設定crash report" : "Setting crash report?";
+		public static final String dialog_title_set_crash_report = Locale.getDefault().equals(Locale.TAIWAN) ? "設定crash report" : "Setting crash report";
+		public static final String dialog_alert_input_your_email = Locale.getDefault().equals(Locale.TAIWAN) ? "請輸入你的E-mail" : "Input your E-mail, please.";
+		public static final String dialog_alert_input_your_email_password = Locale.getDefault().equals(Locale.TAIWAN) ? "請輸入你的E-mail password" : "Input your E-mail password, please.";
+		public static final String dialog_alert_input_random_test_count = Locale.getDefault().equals(Locale.TAIWAN) ? "請輸入隨機亂點次數" : "Input Counts for Random Test Event.";
 
 		public static final String text_target = Locale.getDefault().equals(Locale.TAIWAN) ? "正確截圖" : "Target";
 		public static final String text_test = Locale.getDefault().equals(Locale.TAIWAN) ? "對照截圖" : "Test";

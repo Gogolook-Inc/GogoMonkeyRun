@@ -11,8 +11,10 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 import javax.imageio.ImageIO;
 import javax.swing.JMenuItem;
@@ -26,6 +28,7 @@ import com.james.uicomparerunner.ui.UiCompareFrame;
 import com.james.uicomparerunner.ui.UiCompareFrame.OnReplaceClickListener;
 import com.james.uicomparerunner.ui.dialog.DialogBuilder;
 import com.james.uicomparerunner.ui.uiinterface.OnWindowCloseListener;
+import com.james.uicomparerunner.utils.EmailUtils;
 import com.james.uicomparerunner.utils.FileUtils;
 import com.james.uicomparerunner.utils.HtmlGenerator;
 import com.james.uicomparerunner.utils.PropertyUtils;
@@ -65,6 +68,8 @@ public class UICompareRunner {
 		setDefaultDevice(false);
 
 		initProperDir(null);
+
+		setEmailForCrashReport(false);
 
 		showQuikActionSelectDialog(true, R.string.dialog_alert_run_last_script);
 
@@ -123,6 +128,12 @@ public class UICompareRunner {
 				else if (menuItem.getText().equalsIgnoreCase(R.string.menu_device_reset_package_name)) {
 					//
 					inputPackageName();
+				}
+				else if (menuItem.getText().equalsIgnoreCase(R.string.menu_device_random_test)) {
+					randomTest();
+				}
+				else if (menuItem.getText().equalsIgnoreCase(R.string.menu_device_report_error)) {
+					setEmailForCrashReport(true);
 				}
 				else if (menuItem.getText().equalsIgnoreCase(R.string.menu_open_editor)) {
 					uiCompareFrame.checkSharedPreference(package_name);
@@ -202,7 +213,6 @@ public class UICompareRunner {
 
 			@Override
 			public void onExec(String line) {
-				// TODO Auto-generated method stub
 
 			}
 
@@ -372,7 +382,6 @@ public class UICompareRunner {
 
 		uiCompareFrame.removeAll();
 
-		// TODO
 		monitorLogcat();
 
 		for (String currentPath : monkey_runner_file_path) {
@@ -600,7 +609,6 @@ public class UICompareRunner {
 
 			@Override
 			public void onExec(String line) {
-				// TODO Auto-generated method stub
 
 			}
 
@@ -622,12 +630,90 @@ public class UICompareRunner {
 		uiCompareFrame.setLabelText(text);
 	}
 
+	private static void randomTest() {
+
+		int count = 500;
+		String input = JOptionPane.showInputDialog(R.string.dialog_alert_input_random_test_count);
+		if (input == null) {
+			return;
+		}
+		else {
+			try {
+				count = Integer.parseInt(input);
+			} catch (java.lang.NumberFormatException e) {
+				return;
+			}
+		}
+
+		monitorLogcat();
+
+		final String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
+		SystemUtils.exec(adb + " -s " + device + " shell monkey -p " + package_name + " -v " + count, null);
+	}
+
+	private static void setEmailForCrashReport(boolean reset) {
+		if (reset) {
+			PropertyUtils.saveProperty(PropertyUtils.KEY_FROM_EMAIL, PropertyUtils.NULL);
+			PropertyUtils.saveProperty(PropertyUtils.KEY_FROM_EMAIL_PASSWORD, PropertyUtils.NULL);
+		}
+		else {
+			String username = PropertyUtils.loadProperty(PropertyUtils.KEY_FROM_EMAIL, PropertyUtils.NULL);
+			String password = PropertyUtils.loadProperty(PropertyUtils.KEY_FROM_EMAIL_PASSWORD, PropertyUtils.NULL);
+			if (username.equalsIgnoreCase(PropertyUtils.NULL) || password.equalsIgnoreCase(PropertyUtils.NULL)) {
+				int opt = DialogBuilder.showConfirmDialog(uiCompareFrame, R.string.dialog_alert_confirm_set_crash_report);
+				if (opt == 0) {
+					setEmailForCrashReport(true);
+				}
+			}
+			return;
+
+		}
+
+		String defaultUsername = PropertyUtils.loadProperty(PropertyUtils.KEY_FROM_EMAIL, PropertyUtils.NULL);
+		while (defaultUsername == null || defaultUsername.equalsIgnoreCase(PropertyUtils.NULL)) {
+			defaultUsername = JOptionPane.showInputDialog(uiCompareFrame, R.string.dialog_alert_input_your_email, R.string.dialog_title_set_crash_report, JOptionPane.DEFAULT_OPTION);
+			if (defaultUsername == null) {
+				PropertyUtils.saveProperty(PropertyUtils.KEY_FROM_EMAIL, PropertyUtils.NULL);
+			}
+			else {
+				PropertyUtils.saveProperty(PropertyUtils.KEY_FROM_EMAIL, defaultUsername);
+			}
+		}
+
+		String defaultPassword = PropertyUtils.loadProperty(PropertyUtils.KEY_FROM_EMAIL_PASSWORD, PropertyUtils.NULL);
+		while (defaultPassword == null || defaultPassword.equalsIgnoreCase(PropertyUtils.NULL)) {
+			defaultPassword = JOptionPane.showInputDialog(uiCompareFrame, R.string.dialog_alert_input_your_email_password, R.string.dialog_title_set_crash_report, JOptionPane.DEFAULT_OPTION);
+			if (defaultPassword == null) {
+				PropertyUtils.saveProperty(PropertyUtils.KEY_FROM_EMAIL_PASSWORD, PropertyUtils.NULL);
+			}
+			else {
+				PropertyUtils.saveProperty(PropertyUtils.KEY_FROM_EMAIL_PASSWORD, defaultPassword);
+			}
+		}
+	}
+
 	private static Thread logcatThread;
+	private static String errorLog = null;
 
 	private static void monitorLogcat() {
+		final String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
+		SystemUtils.exec(adb + " -s " + device + " logcat -c", null);
+
 		if (logcatThread != null && logcatThread.isAlive()) {
 			logcatThread.interrupt();
 			logcatThread = null;
+		}
+
+		Date date = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		final String dateString = "============= " + sdf.format(date) + " =============";
+		try {
+			String path = new File(dir_device).getAbsolutePath();
+			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(path + "/log.txt", true)));
+			out.println(dateString);
+			out.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
 		logcatThread = new Thread(new Runnable() {
@@ -646,7 +732,28 @@ public class UICompareRunner {
 							PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(path + "/log.txt", true)));
 							out.println(line);
 							out.close();
+
 						} catch (IOException e) {
+							e.printStackTrace();
+						}
+
+						if (line.contains("Caused by")) {
+							if (errorLog == null)
+								errorLog = dateString + "\n" + line;
+						}
+						if (errorLog != null && errorLog.contains("Caused by")) {
+							errorLog = errorLog + "\n" + line;
+						}
+						if (errorLog != null && errorLog.split("\n").length > 5) {
+							String username = PropertyUtils.loadProperty(PropertyUtils.KEY_FROM_EMAIL, PropertyUtils.NULL);
+							String password = PropertyUtils.loadProperty(PropertyUtils.KEY_FROM_EMAIL_PASSWORD, PropertyUtils.NULL);
+							if (username.equalsIgnoreCase(PropertyUtils.NULL) || password.equalsIgnoreCase(PropertyUtils.NULL)) {
+								errorLog = null;
+								return;
+							}
+
+							EmailUtils.send(username, password, username, errorLog);
+							errorLog = null;
 						}
 					}
 

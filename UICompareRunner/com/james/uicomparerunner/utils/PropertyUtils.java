@@ -16,6 +16,8 @@ public class PropertyUtils {
 	public static final String KEY_DEVICE = "device";
 	public static final String KEY_SDK_PATH = "sdk_path";
 	public static final String KEY_LAST_SCRIPT = "last_script";
+	public static final String KEY_FROM_EMAIL = "from_mail";
+	public static final String KEY_FROM_EMAIL_PASSWORD = "from_mail_password";
 
 	private static Properties getProperties() {
 		Properties prop = new Properties();

@@ -60,9 +60,11 @@ public class UiCompareFrame extends JFrame {
 		new JMenuItem(R.string.menu_file_clear),
 		new JMenuItem(R.string.menu_file_close, KeyEvent.VK_Q)
 	};
-	private JMenuItem[] settingMenu = {
+	private JMenuItem[] deviceMenu = {
 		new JMenuItem(R.string.menu_device_reset_device),
-		new JMenuItem(R.string.menu_device_reset_package_name)
+		new JMenuItem(R.string.menu_device_reset_package_name),
+		new JMenuItem(R.string.menu_device_random_test),
+		new JMenuItem(R.string.menu_device_report_error)
 	};
 	private JMenuItem[] editMenu = {
 		new JMenuItem(R.string.menu_open_editor)
@@ -99,7 +101,7 @@ public class UiCompareFrame extends JFrame {
 					SystemUtils.isMac() ? Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() : Event.CTRL_MASK));
 			item.addActionListener(actionListener);
 		}
-		for (JMenuItem item : settingMenu) {
+		for (JMenuItem item : deviceMenu) {
 			jMenu[1].add(item);
 			item.setAccelerator(KeyStroke.getKeyStroke(item.getMnemonic(),
 					SystemUtils.isMac() ? Toolkit.getDefaultToolkit().getMenuShortcutKeyMask() : Event.CTRL_MASK));
