@@ -71,7 +71,8 @@ public class UiCompareFrame extends JFrame {
 	};
 	private JMenuItem[] helpMenu = {
 		new JMenuItem(R.string.menu_help_tutorial),
-		new JMenuItem(R.string.menu_help_about)
+		new JMenuItem(R.string.menu_help_about),
+		new JMenuItem(R.string.menu_help_screen_shot)
 	};
 	private JMenuBar jMenuBar = new JMenuBar();
 

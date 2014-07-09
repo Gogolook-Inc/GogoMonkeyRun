@@ -30,6 +30,7 @@ public class R {
 
 		public static final String menu_help_tutorial = Locale.getDefault().equals(Locale.TAIWAN) ? "教學" : "Tutorial";
 		public static final String menu_help_about = Locale.getDefault().equals(Locale.TAIWAN) ? "關於" : "About";
+		public static final String menu_help_screen_shot = Locale.getDefault().equals(Locale.TAIWAN) ? "螢幕截圖" : "ScreenShot";
 
 		public static final String dialog_title_alert = Locale.getDefault().equals(Locale.TAIWAN) ? "注意:" : "Alert:";
 		public static final String dialog_title_quikly_choose = Locale.getDefault().equals(Locale.TAIWAN) ? "快速選擇" : "Quick Action";

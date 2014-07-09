@@ -14,7 +14,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 public class EmailUtils {
-	public static void send(final String username, final String password, final String toEmail, final String content) {
+	public static void send(final String username, final String password, final String toEmail, final String subject, final String content) {
 
 		// Get system properties
 		Properties properties = System.getProperties();
@@ -39,7 +39,7 @@ public class EmailUtils {
 			message.setFrom(new InternetAddress(username));
 			message.setRecipients(Message.RecipientType.TO,
 					InternetAddress.parse(toEmail));
-			message.setSubject("Crash Report From GogoMonkeyRun");
+			message.setSubject(subject);
 			message.setText(content);
 
 			Transport.send(message);

@@ -50,7 +50,7 @@ public class DialogBuilder {
 		if (SystemUtils.isMac()) {
 			System.setProperty("apple.awt.fileDialogForDirectories", "true");
 			FileDialog dirChooser = new FileDialog((JFrame) parentComponent);
-			dirChooser.setDirectory(new File("/").getAbsolutePath());
+			dirChooser.setDirectory(new File("/Applications").getAbsolutePath());
 			dirChooser.setLocation(50, 50);
 			dirChooser.setVisible(true);
 			String fileDir = null;

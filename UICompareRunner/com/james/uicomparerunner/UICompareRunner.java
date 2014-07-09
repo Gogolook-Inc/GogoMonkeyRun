@@ -22,8 +22,12 @@ import javax.swing.JOptionPane;
 
 import com.james.uicomparerunner.c.Constants;
 import com.james.uicomparerunner.res.R;
+import com.james.uicomparerunner.socket.SocketInstruction;
+import com.james.uicomparerunner.socket.SocketServer;
+import com.james.uicomparerunner.socket.SocketServer.SocketStatusListener;
 import com.james.uicomparerunner.ui.RecorderEditFrame;
 import com.james.uicomparerunner.ui.ScriptConcatenateFrame;
+import com.james.uicomparerunner.ui.SocketFrame;
 import com.james.uicomparerunner.ui.UiCompareFrame;
 import com.james.uicomparerunner.ui.UiCompareFrame.OnReplaceClickListener;
 import com.james.uicomparerunner.ui.dialog.DialogBuilder;
@@ -32,6 +36,7 @@ import com.james.uicomparerunner.utils.EmailUtils;
 import com.james.uicomparerunner.utils.FileUtils;
 import com.james.uicomparerunner.utils.HtmlGenerator;
 import com.james.uicomparerunner.utils.PropertyUtils;
+import com.james.uicomparerunner.utils.ScreenUtils;
 import com.james.uicomparerunner.utils.ScriptGenerator;
 import com.james.uicomparerunner.utils.SystemUtils;
 import com.james.uicomparerunner.utils.SystemUtils.OnExecCallBack;
@@ -57,6 +62,10 @@ public class UICompareRunner {
 
 	private static ScriptConcatenateFrame scriptConcatenateFrame;
 
+	private static SocketFrame socketFrame;
+
+	private static SocketServer socketServer;
+
 	public static void main(String args[]) {
 
 		SystemUtils.init();
@@ -68,6 +77,8 @@ public class UICompareRunner {
 		setDefaultDevice(false);
 
 		initProperDir(null);
+
+		initSocket();
 
 		setEmailForCrashReport(false);
 
@@ -115,7 +126,7 @@ public class UICompareRunner {
 				}
 				else if (menuItem.getText().equalsIgnoreCase(R.string.menu_file_show_last_result)) {
 					//
-					generateResult();
+					generateResult(false);
 				}
 				else if (menuItem.getText().equalsIgnoreCase(R.string.menu_file_clear)) {
 					//
@@ -138,7 +149,9 @@ public class UICompareRunner {
 				else if (menuItem.getText().equalsIgnoreCase(R.string.menu_open_editor)) {
 					uiCompareFrame.checkSharedPreference(package_name);
 				}
-
+				else if (menuItem.getText().equalsIgnoreCase(R.string.menu_help_screen_shot)) {
+					ScreenUtils.capture();
+				}
 			}
 		});
 
@@ -160,7 +173,7 @@ public class UICompareRunner {
 
 				DialogBuilder.showMessageDialog(uiCompareFrame, R.string.dialog_alert_set_as_target_success);
 				//
-				generateResult();
+				generateResult(false);
 			}
 		});
 	}
@@ -223,28 +236,40 @@ public class UICompareRunner {
 					return;
 				}
 
-				String[] splits = response.split("\n");
-				ArrayList<String> devices = new ArrayList<String>();
-				for (String split : splits) {
-					if (split.contains("	")) {
-						String device = split.split("	")[0];
-						devices.add(device);
-					}
-				}
+				Object[] possibilities = getAllDevices(response);
 
-				if (devices.contains(PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL))) {
+				if (possibilities == null) {
 					return;
 				}
-
-				Object[] possibilities = devices.toArray();
 
 				String selectDevice = DialogBuilder.showDeviceSelectDialog(uiCompareFrame, possibilities);
 				if (selectDevice != null)
 					PropertyUtils.saveProperty(PropertyUtils.KEY_DEVICE, selectDevice);
 				else
 					PropertyUtils.saveProperty(PropertyUtils.KEY_DEVICE, originDevice);
+
+				initProperDir(null);
 			}
 		});
+	}
+
+	private static Object[] getAllDevices(String text) {
+
+		String[] splits = text.split("\n");
+		ArrayList<String> devices = new ArrayList<String>();
+		for (String split : splits) {
+			if (split.contains("	")) {
+				String device = split.split("	")[0];
+				devices.add(device);
+			}
+		}
+
+		if (devices.contains(PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL))) {
+			return null;
+		}
+
+		Object[] possibilities = devices.toArray();
+		return possibilities;
 	}
 
 	private static void recordNewAction() {
@@ -422,11 +447,11 @@ public class UICompareRunner {
 			FileUtils.deletePicturesInDirectory(new File(dir_device_picture));
 		}
 
-		generateResult();
+		generateResult(true);
 
 	}
 
-	private static void generateResult() {
+	private static void generateResult(boolean informFinish) {
 		setLabelText("generating result...");
 
 		String path = PropertyUtils.loadProperty(PropertyUtils.KEY_LAST_SCRIPT, PropertyUtils.NULL);
@@ -523,6 +548,20 @@ public class UICompareRunner {
 		}
 
 		setLabelText("complete!");
+
+		if (informFinish) {
+			String username = PropertyUtils.loadProperty(PropertyUtils.KEY_FROM_EMAIL, PropertyUtils.NULL);
+			String password = PropertyUtils.loadProperty(PropertyUtils.KEY_FROM_EMAIL_PASSWORD, PropertyUtils.NULL);
+			if (username.equalsIgnoreCase(PropertyUtils.NULL) || password.equalsIgnoreCase(PropertyUtils.NULL)) {
+				return;
+			}
+			String subject = "[no-reply] Notification From GogoMonkeyRun";
+			EmailUtils.send(username, password, username, subject, "GogoMonkey Auto-Testing Complete!");
+		}
+
+		if (socketServer != null && socketServer.isConnected()) {
+			socketServer.write(SocketInstruction.COMPLETE_RUNNING_SCRIPT);
+		}
 	}
 
 	//
@@ -755,7 +794,8 @@ public class UICompareRunner {
 								return;
 							}
 
-							EmailUtils.send(username, password, username, errorLog);
+							String subject = "[no-reply] Crash Report From GogoMonkeyRun";
+							EmailUtils.send(username, password, username, subject, errorLog);
 							errorLog = null;
 						}
 					}
@@ -768,5 +808,108 @@ public class UICompareRunner {
 			}
 		});
 		logcatThread.start();
+	}
+
+	private static void initSocket() {
+		socketServer = new SocketServer(new SocketStatusListener() {
+
+			@Override
+			public void onStatusChanged() {
+				if (socketServer == null)
+					return;
+				if (socketServer.isConnected()) {
+					if (socketFrame == null) {
+						socketFrame = new SocketFrame(uiCompareFrame, new OnWindowCloseListener() {
+
+							@Override
+							public void onWindowClosing(String... output) {
+								socketServer.close();
+								socketServer.waitForConnection();
+							}
+						});
+					}
+					socketFrame.setDevice(socketServer.getInetAddress());
+					socketFrame.setVisible(true);
+				}
+				else {
+					if (socketFrame != null) {
+						socketFrame.setVisible(false);
+					}
+				}
+			}
+
+			@Override
+			public void onSocketException(Exception e) {
+				DialogBuilder.showMessageDialog(uiCompareFrame, e.toString());
+			}
+
+			@Override
+			public void onRead(String recieve) {
+
+				if (recieve.startsWith(SocketInstruction.SOCKET_CLOSE)) {
+					socketFrame.appendCmd("Close socket");
+					socketServer.close();
+					socketServer.waitForConnection();
+				}
+				else if (recieve.startsWith(SocketInstruction.GET_ALL_DEVICES)) {
+					socketFrame.appendCmd("Get all devices");
+					SystemUtils.exec(adb + " " + "devices", new OnExecCallBack() {
+
+						@Override
+						public void onExec(String line) {
+
+						}
+
+						@Override
+						public void afterExec(String response, String error) {
+							if (!error.equalsIgnoreCase("")) {
+								DialogBuilder.showMessageDialog(uiCompareFrame, error);
+								return;
+							}
+							socketServer.write(SocketInstruction.GET_ALL_DEVICES + SocketInstruction.SEP + response);
+						}
+					});
+				}
+				else if (recieve.startsWith(SocketInstruction.SET_DEVICE)) {
+					socketFrame.appendCmd("Set default device");
+					String selectDevice = recieve.split(SocketInstruction.SEP)[1];
+					PropertyUtils.saveProperty(PropertyUtils.KEY_DEVICE, selectDevice);
+					initProperDir(null);
+				}
+				else if (recieve.startsWith(SocketInstruction.GET_ALL_SCRIPTS)) {
+					socketFrame.appendCmd("Get all scripts");
+					File scriptDir = new File(dir_device_script);
+					String scriptFiles = "null";
+					for (String fileName : scriptDir.list()) {
+						if (fileName.endsWith(".py")) {
+							if (scriptFiles.equalsIgnoreCase("null")) {
+								scriptFiles = fileName;
+							}
+							else {
+								scriptFiles = scriptFiles + "," + fileName;
+							}
+						}
+					}
+					socketServer.write(SocketInstruction.GET_ALL_SCRIPTS + SocketInstruction.SEP + scriptFiles);
+				}
+				else if (recieve.startsWith(SocketInstruction.SET_SCRIPT)) {
+					socketFrame.appendCmd("Set script to run");
+					String[] scripts = recieve.split(SocketInstruction.SEP)[1].split(",");
+					// dir_device_script
+					String monkey_runner_file_path = null;
+					for (String script : scripts) {
+						if (monkey_runner_file_path == null) {
+							monkey_runner_file_path = new File(dir_device_script + File.separator + script).getAbsolutePath();
+						}
+						else {
+							monkey_runner_file_path = monkey_runner_file_path + "," + new File(dir_device_script + File.separator + script).getAbsolutePath();
+						}
+					}
+
+					PropertyUtils.saveProperty(PropertyUtils.KEY_LAST_SCRIPT, monkey_runner_file_path);
+					startMonkeyRunner();
+				}
+			}
+		}).waitForConnection();
 	}
 }

@@ -32,6 +32,7 @@ elif action == 'record':
 	MonkeyRecorderExt.start(device, defaultExportDir)
 else:
 	print("close monkey recorder")
-	device.shell("stop")
+	if not device_name == 'HT43VWM04049':
+		device.shell("stop")
 
 sys.exit(0)

@@ -86,7 +86,9 @@ public class ScriptGenerator {
 		writer.newLine();
 		writer.write("	startSteps()");
 		writer.newLine();
-		writer.write("	device.shell(\"stop\")");
+		writer.write("	if not device_name == 'HT43VWM04049':");
+		writer.newLine();
+		writer.write("		device.shell(\"stop\")");
 		writer.newLine();
 		writer.write("	sys.exit(0)");
 		writer.newLine();
