@@ -803,7 +803,7 @@ public class UICompareRunner {
 				PropertyUtils.saveProperty(PropertyUtils.KEY_FROM_EMAIL, defaultUsername);
 			}
 
-			String defaultPassword = passwordEdit.getPassword().toString();
+			String defaultPassword = passwordEdit.getText();
 			if (defaultPassword == null) {
 				PropertyUtils.saveProperty(PropertyUtils.KEY_FROM_EMAIL_PASSWORD, PropertyUtils.NULL);
 			}
