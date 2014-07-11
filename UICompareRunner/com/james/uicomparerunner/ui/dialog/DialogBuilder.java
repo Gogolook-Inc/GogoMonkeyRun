@@ -132,6 +132,20 @@ public class DialogBuilder {
 		return null;
 	}
 
+	public static String showFindApkFileDialog(Component parentComponent, String[] apkNames) {
+		//
+		String select = (String) JOptionPane
+				.showInputDialog(parentComponent,
+						R.string.dialog_title_script_select, R.string.dialog_title_script_select, JOptionPane.PLAIN_MESSAGE,
+						null, apkNames,
+						apkNames.length > 0 ? apkNames[0] : "");
+		if (select != null) {
+			return select;
+		}
+
+		return null;
+	}
+
 	public static String showFindScriptFileDialog(Component parentComponent) {
 		//
 		File scriptDir = new File(UICompareRunner.dir_device_script);

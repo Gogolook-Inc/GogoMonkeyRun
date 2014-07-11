@@ -4,7 +4,6 @@ package com.james.uicomparerunner.ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Event;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -18,6 +17,7 @@ import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -25,9 +25,9 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 
 import com.james.uicomparerunner.UICompareRunner;
 import com.james.uicomparerunner.res.R;
@@ -62,6 +62,7 @@ public class UiCompareFrame extends JFrame {
 	};
 	private JMenuItem[] deviceMenu = {
 		new JMenuItem(R.string.menu_device_reset_device),
+		new JMenuItem(R.string.menu_device_reset_apk),
 		new JMenuItem(R.string.menu_device_reset_package_name),
 		new JMenuItem(R.string.menu_device_random_test),
 		new JMenuItem(R.string.menu_device_report_error)
@@ -78,7 +79,10 @@ public class UiCompareFrame extends JFrame {
 
 	private JScrollPane scrollpane;
 	private Box contentPanel;
-	private JLabel label;
+	private JLabel deviceLabel;
+	public JButton changeDeviceButton;
+	private JLabel scriptsLabel;
+	private JTextPane consoleText;
 
 	private OnReplaceClickListener mOnReplaceClickListener;
 
@@ -125,25 +129,53 @@ public class UiCompareFrame extends JFrame {
 		this.setTitle(R.string.app_name);
 		// this.setLayout(null);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setBounds(monitorWidth * 1 / 10, 10, monitorWidth * 8 / 10, monitorHeight * 9 / 10);
+		this.setBounds(monitorWidth * 1 / 10, 10, monitorWidth * 7 / 10, monitorHeight * 8 / 10);
+		this.setLayout(new BorderLayout());
 
 		contentPanel = Box.createVerticalBox();
 
 		scrollpane = new JScrollPane(contentPanel);
 		scrollpane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollpane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		scrollpane.setBounds(0, 0, monitorWidth * 8 / 10 - 50, monitorHeight * 9 / 10 - 50);
 
 		this.add(scrollpane, BorderLayout.CENTER);
 		scrollpane.setVisible(true);
 
-		label = new JLabel("Initialized");
-		Border border = BorderFactory.createLineBorder(Color.BLACK);
-		label.setBorder(border);
-		label.setPreferredSize(new Dimension(150, 100));
-		label.setHorizontalAlignment(JLabel.LEFT);
-		label.setVerticalAlignment(JLabel.BOTTOM);
-		this.add(label);
+		// TODO
+		Box informationPanel = Box.createVerticalBox();
+		informationPanel.setBorder(
+				BorderFactory.createCompoundBorder(
+						BorderFactory.createTitledBorder("Information"),
+						BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+		this.add(informationPanel, BorderLayout.WEST);
+
+		JLabel deviceTitle = new JLabel("Current Device");
+		deviceTitle.setBorder(
+				BorderFactory.createCompoundBorder(
+						BorderFactory.createLineBorder(Color.GRAY),
+						BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+		informationPanel.add(deviceTitle);
+
+		deviceLabel = new JLabel();
+		informationPanel.add(deviceLabel);
+
+		JLabel scriptsTitle = new JLabel("Current Scripts");
+		scriptsTitle.setBorder(
+				BorderFactory.createCompoundBorder(
+						BorderFactory.createLineBorder(Color.GRAY),
+						BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+		informationPanel.add(scriptsTitle);
+
+		scriptsLabel = new JLabel();
+		informationPanel.add(scriptsLabel);
+
+		consoleText = new JTextPane();
+		consoleText.setBorder(
+				BorderFactory.createCompoundBorder(
+						BorderFactory.createTitledBorder("Console"),
+						BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+		this.add(consoleText, BorderLayout.SOUTH);
+		consoleText.setEditable(false);
 
 		this.setVisible(true);
 	}
@@ -179,9 +211,8 @@ public class UiCompareFrame extends JFrame {
 				offsetPanel.setVisible(true);
 			}
 		}
-		this.setBounds(monitorWidth * 1 / 10, 10, monitorWidth * 8 / 10, monitorHeight * 9 / 10 + 1);
-		this.setBounds(monitorWidth * 1 / 10, 10, monitorWidth * 8 / 10, monitorHeight * 9 / 10);
-		this.repaint();
+
+		refresh();
 	}
 
 	public void setOnReplaceClickListener(OnReplaceClickListener onReplaceClickListener) {
@@ -307,7 +338,44 @@ public class UiCompareFrame extends JFrame {
 	}
 
 	public void setLabelText(String text) {
-		label.setText(text);
+		String[] consoles = consoleText.getText().split("\n");
+
+		int length = consoles.length;
+		if (length >= 3) {
+			consoleText.setText(consoles[length - 3] + "\n" + consoles[length - 2] + "\n" + consoles[length - 1] + "\n" + text);
+		}
+		else if (length >= 2) {
+			consoleText.setText(consoles[length - 2] + "\n" + consoles[length - 1] + "\n" + text);
+		}
+		else if (length >= 1) {
+			consoleText.setText(consoles[length - 1] + "\n" + text);
+		}
+		else {
+			consoleText.setText(text);
+		}
+
+		refresh();
+	}
+
+	public void setDeviceName(String deviceName) {
+		deviceLabel.setText(deviceName);
+		refresh();
+	}
+
+	public void setScriptsName(String scriptList) {
+		String newScriptList = null;
+		String[] scripts = scriptList.split(",");
+		for (int i = 0; i < scripts.length; i++) {
+			if (newScriptList == null) {
+				newScriptList = new File(scripts[i]).getName();
+			}
+			else {
+				newScriptList = newScriptList + "\n" + new File(scripts[i]).getName();
+			}
+		}
+		scriptsLabel.setText(newScriptList);
+
+		refresh();
 	}
 
 	public boolean isEditorShown() {
@@ -315,5 +383,11 @@ public class UiCompareFrame extends JFrame {
 			return false;
 
 		return sharedPreferenceEditFrame.isShowing();
+	}
+
+	private void refresh() {
+		this.setBounds(getX(), getY(), getWidth(), getHeight() + 1);
+		this.setBounds(getX(), getY(), getWidth(), getHeight() - 1);
+		this.repaint();
 	}
 }

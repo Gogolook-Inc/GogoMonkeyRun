@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -17,8 +18,13 @@ import java.util.Arrays;
 import java.util.Date;
 
 import javax.imageio.ImageIO;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
 
 import com.james.uicomparerunner.c.Constants;
 import com.james.uicomparerunner.res.R;
@@ -46,7 +52,8 @@ public class UICompareRunner {
 	public static String adb = "/platform-tools/adb";
 	public static String monkey_runner = "/tools/monkeyrunner";
 	public static String monkey_runner_ext_lib = "/tools/lib/monkeyrunner_ext.jar";
-	public static String monkey_recorder_file_path = "ui_recorder.py";
+	public static String monkey_recorder_file_path = "python/ui_recorder.py";
+	public static String monkey_installer_file_path = "python/installer.py";
 	public static String dir_device = "%s";
 	public static String dir_device_picture = "%s/%s/sreenshot";
 	public static String dir_device_target_picture = "%s/%s/sreenshot/target";
@@ -65,6 +72,8 @@ public class UICompareRunner {
 	private static SocketFrame socketFrame;
 
 	private static SocketServer socketServer;
+
+	private static String apkName = null;
 
 	public static void main(String args[]) {
 
@@ -136,6 +145,10 @@ public class UICompareRunner {
 					//
 					setDefaultDevice(true);
 				}
+				else if (menuItem.getText().equalsIgnoreCase(R.string.menu_device_reset_apk)) {
+					//
+					selectAPKtoInstall();
+				}
 				else if (menuItem.getText().equalsIgnoreCase(R.string.menu_device_reset_package_name)) {
 					//
 					inputPackageName();
@@ -202,7 +215,7 @@ public class UICompareRunner {
 		// check monkey_runner_ext_lib exist or not
 		if (!PropertyUtils.loadProperty(PropertyUtils.KEY_VERSION, "1.0.0").equalsIgnoreCase(Constants.VERSION) || !new File(android_sdk_path + monkey_runner_ext_lib).exists()) {
 			try {
-				FileUtils.copyFileFromFileToFile(new File("monkeyrunner_ext"), new File(android_sdk_path + monkey_runner_ext_lib));
+				FileUtils.copyFileFromFileToFile(new File("libs/monkeyrunner_ext"), new File(android_sdk_path + monkey_runner_ext_lib));
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 				System.exit(-1);
@@ -214,6 +227,7 @@ public class UICompareRunner {
 
 		//
 		monkey_recorder_file_path = new File(monkey_recorder_file_path).getAbsolutePath();
+		monkey_installer_file_path = new File(monkey_installer_file_path).getAbsolutePath();
 	}
 
 	private static void setDefaultDevice(boolean reset) {
@@ -233,6 +247,10 @@ public class UICompareRunner {
 			public void afterExec(String response, String error) {
 				if (!error.equalsIgnoreCase("")) {
 					DialogBuilder.showMessageDialog(uiCompareFrame, error);
+
+					if (socketServer != null && socketServer.isConnected()) {
+						socketServer.write(SocketInstruction.ERROR_MESSAGE + SocketInstruction.separator + error);
+					}
 					return;
 				}
 
@@ -320,6 +338,7 @@ public class UICompareRunner {
 			return;
 		}
 		PropertyUtils.saveProperty(PropertyUtils.KEY_LAST_SCRIPT, monkey_runner_file_path);
+		uiCompareFrame.setScriptsName(monkey_runner_file_path);
 
 		int re = DialogBuilder.showConfirmDialog(uiCompareFrame, R.string.dialog_alert_create_script_ok);
 		if (re == 1) {
@@ -378,6 +397,7 @@ public class UICompareRunner {
 				}
 
 				PropertyUtils.saveProperty(PropertyUtils.KEY_LAST_SCRIPT, monkey_runner_file_path);
+				uiCompareFrame.setScriptsName(monkey_runner_file_path);
 
 				showQuikActionSelectDialog(false, R.string.dialog_alert_run_script);
 			}
@@ -394,6 +414,7 @@ public class UICompareRunner {
 		}
 
 		String path = PropertyUtils.loadProperty(PropertyUtils.KEY_LAST_SCRIPT, PropertyUtils.NULL);
+		uiCompareFrame.setScriptsName(path);
 
 		if (path.equalsIgnoreCase(PropertyUtils.NULL)) {
 			return;
@@ -404,6 +425,9 @@ public class UICompareRunner {
 		for (String currentPath : monkey_runner_file_path) {
 			if (currentPath == null || !new File(currentPath).exists()) {
 				DialogBuilder.showMessageDialog(uiCompareFrame, R.string.dialog_alert_file_disappear);
+				if (socketServer != null && socketServer.isConnected()) {
+					socketServer.write(SocketInstruction.ERROR_MESSAGE + SocketInstruction.separator + currentPath + " does not exist");
+				}
 				return;
 			}
 		}
@@ -455,7 +479,7 @@ public class UICompareRunner {
 		setLabelText("generating result...");
 
 		String path = PropertyUtils.loadProperty(PropertyUtils.KEY_LAST_SCRIPT, PropertyUtils.NULL);
-
+		uiCompareFrame.setScriptsName(path);
 		if (path.equalsIgnoreCase(PropertyUtils.NULL)) {
 			return;
 		}
@@ -465,6 +489,9 @@ public class UICompareRunner {
 		for (String currentPath : monkey_runner_file_path) {
 			if (currentPath == null || !new File(currentPath).exists()) {
 				DialogBuilder.showMessageDialog(uiCompareFrame, R.string.dialog_alert_file_disappear);
+				if (socketServer != null && socketServer.isConnected()) {
+					socketServer.write(SocketInstruction.ERROR_MESSAGE + SocketInstruction.separator + currentPath + " does not exist");
+				}
 				return;
 			}
 		}
@@ -568,6 +595,7 @@ public class UICompareRunner {
 	private static boolean initProperDir(String monkey_runner_file_path) {
 		//
 		String deviceName = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
+		uiCompareFrame.setDeviceName(deviceName);
 		if (deviceName.equalsIgnoreCase(PropertyUtils.NULL)) {
 			DialogBuilder.showMessageDialog(uiCompareFrame, R.string.dialog_alert_choose_a_device);
 			setDefaultDevice(true);
@@ -610,6 +638,7 @@ public class UICompareRunner {
 		dir_device_result_picture = new File(String.format(dir_device_result_picture, deviceName, scriptName)).getAbsolutePath();
 		if (!new File(dir_device_result_picture).exists())
 			new File(dir_device_result_picture).mkdirs();
+
 		return true;
 	}
 
@@ -617,6 +646,7 @@ public class UICompareRunner {
 		//
 		if (checkFile) {
 			String lastScriptPath = PropertyUtils.loadProperty(PropertyUtils.KEY_LAST_SCRIPT, PropertyUtils.NULL);
+			uiCompareFrame.setScriptsName(lastScriptPath);
 			//
 			if (lastScriptPath.equalsIgnoreCase(PropertyUtils.NULL)) {
 				int re = DialogBuilder.showConfirmDialog(uiCompareFrame, R.string.dialog_alert_create_a_new_script);
@@ -632,6 +662,50 @@ public class UICompareRunner {
 		if (select == 0) {
 			startMonkeyRunner();
 		}
+	}
+
+	private static void selectAPKtoInstall() {
+		//
+		apkName = DialogBuilder.showFindApkFileDialog(uiCompareFrame, getAllApks());
+		installApk(apkName);
+	}
+
+	private static void installApk(String apkName) {
+		System.out.println("install apk: " + apkName);
+		if (apkName == null) {
+			if (socketServer != null && socketServer.isConnected()) {
+				socketServer.write(SocketInstruction.ERROR_MESSAGE + SocketInstruction.separator + "apk does not exist");
+			}
+			return;
+		}
+		File apkDir = new File("apks");
+		apkName = apkDir.getAbsolutePath() + File.separator + apkName;
+		if (!new File(apkName).exists()) {
+			if (socketServer != null && socketServer.isConnected()) {
+				socketServer.write(SocketInstruction.ERROR_MESSAGE + SocketInstruction.separator + "apk does not exist");
+			}
+			return;
+		}
+
+		String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
+		if (device.equalsIgnoreCase(PropertyUtils.NULL))
+			return;
+		SystemUtils.exec(monkey_runner + " " + monkey_installer_file_path + " " + device + " " + apkName, null);
+
+		apkName = null;
+
+		if (socketServer != null && socketServer.isConnected()) {
+			socketServer.write(SocketInstruction.COMPLETE_INSTALLING_APK);
+		}
+	}
+
+	private static String[] getAllApks() {
+		File apkDir = new File("apks");
+		if (!apkDir.exists())
+			apkDir.mkdir();
+
+		String[] fileNames = apkDir.list();
+		return fileNames;
 	}
 
 	public static void inputPackageName() {
@@ -708,23 +782,28 @@ public class UICompareRunner {
 				}
 			}
 			return;
-
 		}
 
-		String defaultUsername = PropertyUtils.loadProperty(PropertyUtils.KEY_FROM_EMAIL, PropertyUtils.NULL);
-		while (defaultUsername == null || defaultUsername.equalsIgnoreCase(PropertyUtils.NULL)) {
-			defaultUsername = JOptionPane.showInputDialog(uiCompareFrame, R.string.dialog_alert_input_your_email, R.string.dialog_title_set_crash_report, JOptionPane.DEFAULT_OPTION);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		panel.add(new JLabel(R.string.dialog_alert_input_your_email));
+		JTextField emailEdit = new JTextField();
+		panel.add(emailEdit);
+		panel.add(new JLabel(R.string.dialog_alert_input_your_email_password));
+		JPasswordField passwordEdit = new JPasswordField();
+		panel.add(passwordEdit);
+
+		int result = JOptionPane.showConfirmDialog(null, panel, R.string.dialog_title_set_crash_report, JOptionPane.OK_CANCEL_OPTION);
+		if (result == 0) {
+			String defaultUsername = emailEdit.getText();
 			if (defaultUsername == null) {
 				PropertyUtils.saveProperty(PropertyUtils.KEY_FROM_EMAIL, PropertyUtils.NULL);
 			}
 			else {
 				PropertyUtils.saveProperty(PropertyUtils.KEY_FROM_EMAIL, defaultUsername);
 			}
-		}
 
-		String defaultPassword = PropertyUtils.loadProperty(PropertyUtils.KEY_FROM_EMAIL_PASSWORD, PropertyUtils.NULL);
-		while (defaultPassword == null || defaultPassword.equalsIgnoreCase(PropertyUtils.NULL)) {
-			defaultPassword = JOptionPane.showInputDialog(uiCompareFrame, R.string.dialog_alert_input_your_email_password, R.string.dialog_title_set_crash_report, JOptionPane.DEFAULT_OPTION);
+			String defaultPassword = passwordEdit.getPassword().toString();
 			if (defaultPassword == null) {
 				PropertyUtils.saveProperty(PropertyUtils.KEY_FROM_EMAIL_PASSWORD, PropertyUtils.NULL);
 			}
@@ -823,6 +902,7 @@ public class UICompareRunner {
 
 							@Override
 							public void onWindowClosing(String... output) {
+								screenshotFlag = false;
 								socketServer.close();
 								socketServer.waitForConnection();
 							}
@@ -830,6 +910,11 @@ public class UICompareRunner {
 					}
 					socketFrame.setDevice(socketServer.getInetAddress());
 					socketFrame.setVisible(true);
+
+					String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
+					socketServer.write(SocketInstruction.SOCKET_CONNECTED + SocketInstruction.separator + device);
+
+					startSyncScreenWithSocket();
 				}
 				else {
 					if (socketFrame != null) {
@@ -866,13 +951,13 @@ public class UICompareRunner {
 								DialogBuilder.showMessageDialog(uiCompareFrame, error);
 								return;
 							}
-							socketServer.write(SocketInstruction.GET_ALL_DEVICES + SocketInstruction.SEP + response);
+							socketServer.write(SocketInstruction.GET_ALL_DEVICES + SocketInstruction.separator + response);
 						}
 					});
 				}
 				else if (recieve.startsWith(SocketInstruction.SET_DEVICE)) {
 					socketFrame.appendCmd("Set default device");
-					String selectDevice = recieve.split(SocketInstruction.SEP)[1];
+					String selectDevice = recieve.split(SocketInstruction.separator)[1];
 					PropertyUtils.saveProperty(PropertyUtils.KEY_DEVICE, selectDevice);
 					initProperDir(null);
 				}
@@ -890,11 +975,11 @@ public class UICompareRunner {
 							}
 						}
 					}
-					socketServer.write(SocketInstruction.GET_ALL_SCRIPTS + SocketInstruction.SEP + scriptFiles);
+					socketServer.write(SocketInstruction.GET_ALL_SCRIPTS + SocketInstruction.separator + scriptFiles);
 				}
 				else if (recieve.startsWith(SocketInstruction.SET_SCRIPT)) {
 					socketFrame.appendCmd("Set script to run");
-					String[] scripts = recieve.split(SocketInstruction.SEP)[1].split(",");
+					String[] scripts = recieve.split(SocketInstruction.separator)[1].split(",");
 					// dir_device_script
 					String monkey_runner_file_path = null;
 					for (String script : scripts) {
@@ -907,9 +992,70 @@ public class UICompareRunner {
 					}
 
 					PropertyUtils.saveProperty(PropertyUtils.KEY_LAST_SCRIPT, monkey_runner_file_path);
+					uiCompareFrame.setScriptsName(monkey_runner_file_path);
 					startMonkeyRunner();
+				}
+				else if (recieve.startsWith(SocketInstruction.GET_ALL_APKS)) {
+					String[] apks = getAllApks();
+					String apkFiles = "null";
+					for (String fileName : apks) {
+						if (apkFiles.equalsIgnoreCase("null")) {
+							apkFiles = fileName;
+						}
+						else {
+							apkFiles = apkFiles + "," + fileName;
+						}
+					}
+					socketServer.write(SocketInstruction.GET_ALL_APKS + SocketInstruction.separator + apkFiles);
+				}
+				else if (recieve.startsWith(SocketInstruction.SET_APK)) {
+					apkName = recieve.split(SocketInstruction.separator)[1];
+					installApk(apkName);
 				}
 			}
 		}).waitForConnection();
+	}
+
+	private static Thread screenshotThread;
+	private static boolean screenshotFlag = false;
+
+	private static void startSyncScreenWithSocket() {
+		if (screenshotThread != null && screenshotThread.isAlive()) {
+			screenshotFlag = false;
+			screenshotThread.interrupt();
+			screenshotThread = null;
+		}
+
+		if (socketServer != null && socketServer.isConnected()) {
+			screenshotFlag = true;
+			screenshotThread = new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					while (screenshotFlag) {
+						BufferedImage bufferedImage = ScreenUtils.capture();
+						ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+						try {
+							ImageIO.write(bufferedImage, "png", outputStream);
+							byte imgBytes[] = outputStream.toByteArray();
+
+							if (socketServer != null && socketServer.isConnected()) {
+								socketServer.write(imgBytes, null);
+							}
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+
+						try {
+							Thread.sleep(15000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			});
+
+			screenshotThread.start();
+		}
 	}
 }

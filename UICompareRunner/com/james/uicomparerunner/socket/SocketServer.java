@@ -77,6 +77,10 @@ public class SocketServer {
 	}
 
 	public SocketServer write(final String message, final OnWriteCallBackListener onWriteCallBackListener) {
+		return write(message.getBytes(), onWriteCallBackListener);
+	}
+
+	public SocketServer write(final byte[] bytes, final OnWriteCallBackListener onWriteCallBackListener) {
 		new Thread(new Runnable() {
 
 			@Override
@@ -84,7 +88,7 @@ public class SocketServer {
 				try {
 					OutputStream out = socket.getOutputStream();
 					// 送出字串
-					out.write(message.getBytes());
+					out.write(bytes);
 					System.out.println("Write to Socket Success!");
 
 					if (onWriteCallBackListener != null)

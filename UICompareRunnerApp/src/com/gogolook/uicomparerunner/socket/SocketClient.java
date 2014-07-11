@@ -26,7 +26,7 @@ public class SocketClient {
 
 		public void onSocketException(Exception e);
 
-		public void onRead(String recieve);
+		public void onRead(byte[] readByte);
 	}
 
 	public interface OnWriteCallBackListener {
@@ -70,6 +70,10 @@ public class SocketClient {
 	}
 
 	public SocketClient write(final String message, final OnWriteCallBackListener onWriteCallBackListener) {
+		return write(message.getBytes(), onWriteCallBackListener);
+	}
+
+	public SocketClient write(final byte[] bytes, final OnWriteCallBackListener onWriteCallBackListener) {
 		new Thread(new Runnable() {
 
 			@Override
@@ -77,7 +81,7 @@ public class SocketClient {
 				try {
 					OutputStream out = socket.getOutputStream();
 					// 送出字串
-					out.write(message.getBytes());
+					out.write(bytes);
 					Log.w(SocketClient.class.getSimpleName(), "Write to Socket Success!");
 
 					if (onWriteCallBackListener != null)
@@ -97,7 +101,7 @@ public class SocketClient {
 	public SocketClient read() {
 
 		try {
-			byte[] readByte = new byte[1024];
+			byte[] readByte = new byte[socket.getReceiveBufferSize()]; // 10,832
 			int bytesRead = socket.getInputStream().read(readByte);
 
 			if (bytesRead == -1) {
@@ -105,11 +109,8 @@ public class SocketClient {
 				return this;
 			}
 
-			String recieve = new String(readByte).trim();
-			Log.i(SocketClient.class.getSimpleName(), recieve);
-
 			if (mSocketStatusListener != null) {
-				mSocketStatusListener.onRead(recieve);
+				mSocketStatusListener.onRead(readByte);
 			}
 
 			read();

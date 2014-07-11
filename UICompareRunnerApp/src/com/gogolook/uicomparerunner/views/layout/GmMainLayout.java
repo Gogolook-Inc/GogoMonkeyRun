@@ -19,11 +19,13 @@ public class GmMainLayout extends FreeLayout {
 	public FreeEditText addressEdit;
 	public FreeEditText portEdit;
 	public FreeTextButton connectButton;
+	public FreeTextView deviceText;
 	public FreeTextView socketText;
 	public ImageView simulationImage;
 	private FreeLayout bottomLayout;
 	public FreeTextButton selectDeviceButton;
 	public FreeTextButton selectScriptButton;
+	public FreeTextButton selectApkButton;
 
 	public GmMainLayout(Context context) {
 		super(context);
@@ -66,6 +68,19 @@ public class GmMainLayout extends FreeLayout {
 		connectButton.setTextSizeFitSp(25);
 		setPadding(connectButton, 15, 5, 15, 5);
 
+		deviceText = (FreeTextView) this.addFreeView(new FreeTextView(context),
+				LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT,
+				connectLayout,
+				new int[] {
+					BELOW
+				});
+		deviceText.setTextSizeFitSp(20);
+		deviceText.setGravity(Gravity.CENTER);
+		deviceText.setText("Current Device: null");
+		deviceText.setTextColor(Color.WHITE);
+		deviceText.setBackgroundColor(0xff3b3033);
+		setMargin(deviceText, 25, 10, 25, 0);
+
 		bottomLayout = (FreeLayout) this.addFreeView(new FreeLayout(context),
 				LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT,
 				new int[] {
@@ -89,6 +104,17 @@ public class GmMainLayout extends FreeLayout {
 		selectScriptButton.setTextSizeFitSp(25);
 		selectScriptButton.setEnabled(false);
 		setPadding(selectScriptButton, 15, 5, 15, 5);
+
+		selectApkButton = (FreeTextButton) bottomLayout.addFreeView(new FreeTextButton(context),
+				640, LayoutParams.WRAP_CONTENT,
+				selectDeviceButton,
+				new int[] {
+					BELOW
+				});
+		selectApkButton.setText("Select an APK");
+		selectApkButton.setTextSizeFitSp(25);
+		selectApkButton.setEnabled(false);
+		setPadding(selectApkButton, 15, 5, 15, 5);
 
 		FreeLayout simulationLayout = (FreeLayout) this.addFreeView(new FreeLayout(context),
 				600, 400,

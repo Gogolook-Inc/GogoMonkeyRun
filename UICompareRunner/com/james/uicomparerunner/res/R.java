@@ -22,6 +22,7 @@ public class R {
 		public static final String menu_file_save = Locale.getDefault().equals(Locale.TAIWAN) ? "儲存" : "Save";
 
 		public static final String menu_device_reset_device = Locale.getDefault().equals(Locale.TAIWAN) ? "變更預設裝置" : "Select Default Device";
+		public static final String menu_device_reset_apk = Locale.getDefault().equals(Locale.TAIWAN) ? "安裝不同版本Apk" : "Install Another APK";
 		public static final String menu_device_reset_package_name = Locale.getDefault().equals(Locale.TAIWAN) ? "變更測試Package Name" : "Change Package Name";
 		public static final String menu_device_random_test = Locale.getDefault().equals(Locale.TAIWAN) ? "隨機測試" : "Random Test";
 		public static final String menu_device_report_error = Locale.getDefault().equals(Locale.TAIWAN) ? "設定crash report E-mail" : "Set E-mail for crash report.";
