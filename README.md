@@ -38,7 +38,7 @@ GogoMonkeyRun
 <br>These files are needed in the same directory.
 <br>Double-click UICompare.jar to open application.
 <br>
-## First Open Application
+## First Time to Open Application
 ![Set SDK path](https://dl.dropboxusercontent.com/u/43934047/GogoMonkeyRun/github_image/set_sdk_path.png)
 <br>Don't worry if see this alert.
 <br>SDK-path must be set at the first time.
