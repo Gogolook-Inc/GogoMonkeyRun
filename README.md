@@ -64,7 +64,7 @@ GogoMonkeyRun
 <br>The following shows the comparison.
 <br>
 ![Compare of new MonkeyRecorder and Old one](https://dl.dropboxusercontent.com/u/43934047/GogoMonkeyRun/github_image/recorder_comparison.jpg)
-<br>The left one is the new MonkeyRecorder, and the right one is the original.
+<br>The right one is the new MonkeyRecorder, and the left one is the original.
 <br>Noticed that, compare to the original one, button of fling is removed.
 <br>To perform fling(or drag), just use mouse to perform drag action.
 <br>
