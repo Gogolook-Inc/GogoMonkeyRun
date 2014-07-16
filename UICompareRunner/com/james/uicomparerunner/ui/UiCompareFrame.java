@@ -354,7 +354,8 @@ public class UiCompareFrame extends JFrame {
 			consoleText.setText(text);
 		}
 
-		refresh();
+		consoleText.repaint();
+		//		refresh();
 	}
 
 	public void setDeviceName(String deviceName) {
