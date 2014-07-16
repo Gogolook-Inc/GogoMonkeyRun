@@ -628,14 +628,16 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 		JFileChooser fc = new JFileChooser();
 		fc.setFileFilter(mrFilter);
 
-		if (defaultExportDir != null)
+		if (defaultExportDir != null) {
 			fc.setCurrentDirectory(new File(defaultExportDir));
+		}
 
 		if (fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 			try {
 				String exportFileName = fc.getSelectedFile().getAbsolutePath();
-				if (!exportFileName.endsWith(".mr"))
+				if (!exportFileName.endsWith(".mr")) {
 					exportFileName = exportFileName + ".mr";
+				}
 				actionListModel.export(new File(exportFileName));
 
 				JOptionPane.showMessageDialog(this, R.string.dialog_export_complete);
@@ -643,5 +645,50 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 				LOG.log(Level.SEVERE, "Unable to save file", e);
 			}
 		}
+		//		if (SystemUtils.isMac()) {
+		//			FileDialog mrChooser = new FileDialog(this, "Save", FileDialog.SAVE);
+		//			if (defaultExportDir != null) {
+		//				mrChooser.setDirectory(new File(defaultExportDir).getAbsolutePath());
+		//			}
+		//			mrChooser.setLocation(50, 50);
+		//			mrChooser.setVisible(true);
+		//			if (mrChooser.getFile() != null) {
+		//				System.out.println("mrChooser.getFile(): " + mrChooser.getFile());
+		//				try {
+		//					String exportFileName = mrChooser.getFile();
+		//					if (!exportFileName.endsWith(".mr")) {
+		//						exportFileName = exportFileName + ".mr";
+		//					}
+		//					actionListModel.export(new File(exportFileName));
+		//
+		//					JOptionPane.showMessageDialog(this, R.string.dialog_export_complete);
+		//				} catch (FileNotFoundException e) {
+		//					LOG.log(Level.SEVERE, "Unable to save file", e);
+		//				}
+		//			}
+		//		}
+		//		else {
+		//			FileNameExtensionFilter mrFilter = new FileNameExtensionFilter(".mr", "mr");
+		//			JFileChooser fc = new JFileChooser();
+		//			fc.setFileFilter(mrFilter);
+		//
+		//			if (defaultExportDir != null) {
+		//				fc.setCurrentDirectory(new File(defaultExportDir));
+		//			}
+		//
+		//			if (fc.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+		//				try {
+		//					String exportFileName = fc.getSelectedFile().getAbsolutePath();
+		//					if (!exportFileName.endsWith(".mr")) {
+		//						exportFileName = exportFileName + ".mr";
+		//					}
+		//					actionListModel.export(new File(exportFileName));
+		//
+		//					JOptionPane.showMessageDialog(this, R.string.dialog_export_complete);
+		//				} catch (FileNotFoundException e) {
+		//					LOG.log(Level.SEVERE, "Unable to save file", e);
+		//				}
+		//			}
+		//		}
 	}
 }

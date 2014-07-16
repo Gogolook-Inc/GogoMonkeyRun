@@ -512,12 +512,14 @@ public class UICompareRunner {
 			File targetDir = new File(dir_device_target_picture);
 			File testDir = new File(dir_device_test_picture);
 
+			boolean hasResult = false;
 			int imageWidth = 360;
 			int imageHeight = 640;
 			for (String fileName : targetDir.list()) {
 				for (String fileName2 : testDir.list()) {
 					if (!fileName.equalsIgnoreCase(fileName2))
 						continue;
+					hasResult = true;
 
 					String path1 = targetDir.getAbsolutePath() + File.separator + fileName;
 					String path2 = testDir.getAbsolutePath() + File.separator + fileName;
@@ -561,10 +563,12 @@ public class UICompareRunner {
 				}
 			}
 
-			try {
-				HtmlGenerator.createHtml(imageWidth / 3, imageHeight / 3);
-			} catch (IOException e) {
-				e.printStackTrace();
+			if (hasResult) {
+				try {
+					HtmlGenerator.createHtml(imageWidth / 3, imageHeight / 3);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 
 			try {

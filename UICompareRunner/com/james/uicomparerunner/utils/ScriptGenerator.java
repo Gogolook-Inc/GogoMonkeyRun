@@ -23,9 +23,26 @@ public class ScriptGenerator {
 	private static int index = 0;
 	private static int loopCount = 1;
 
+	private static String exceptionModels = null;
+
 	public static String getScriptFilePath(String mrPath) throws IOException {
 		if (mrPath == null)
 			return null;
+		exceptionModels = null;
+
+		File file = new File("python" + File.separator + "exception_devices.txt");
+		FileReader fr = new FileReader(file);
+		BufferedReader br = new BufferedReader(fr);
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			if (exceptionModels == null) {
+				exceptionModels = "'" + line + "'";
+			}
+			else {
+				exceptionModels = exceptionModels + "," + "'" + line + "'";
+			}
+		}
+		br.close();
 
 		String mrFileName = new File(mrPath).getName();
 
@@ -82,14 +99,18 @@ public class ScriptGenerator {
 		writer.newLine();
 		writer.write("else:");
 		writer.newLine();
+		writer.write("	deviceModel = device.getProperty('build.model')");
+		writer.newLine();
 		writer.write("	print(\"device connect...success\")");
 		writer.newLine();
 		writer.write("	startSteps()");
 		writer.newLine();
-		writer.write("	if not device_name == 'HT43VWM04049':");
-		writer.newLine();
-		writer.write("		device.shell(\"stop\")");
-		writer.newLine();
+		if (exceptionModels != null) {
+			writer.write("	if not deviceModel in [" + exceptionModels + "]:");
+			writer.newLine();
+			writer.write("		device.shell(\"stop\")");
+			writer.newLine();
+		}
 		writer.write("	sys.exit(0)");
 		writer.newLine();
 		writer.newLine();
