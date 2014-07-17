@@ -17,7 +17,6 @@ import java.io.IOException;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -25,7 +24,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
@@ -80,9 +78,8 @@ public class UiCompareFrame extends JFrame {
 	private JScrollPane scrollpane;
 	private Box contentPanel;
 	private JLabel deviceLabel;
-	public JButton changeDeviceButton;
 	private JLabel scriptsLabel;
-	private JTextPane consoleText;
+	//	private JTextPane consoleText;
 
 	private OnReplaceClickListener mOnReplaceClickListener;
 
@@ -169,13 +166,13 @@ public class UiCompareFrame extends JFrame {
 		scriptsLabel = new JLabel();
 		informationPanel.add(scriptsLabel);
 
-		consoleText = new JTextPane();
-		consoleText.setBorder(
-				BorderFactory.createCompoundBorder(
-						BorderFactory.createTitledBorder("Console"),
-						BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-		this.add(consoleText, BorderLayout.SOUTH);
-		consoleText.setEditable(false);
+		//		consoleText = new JTextPane();
+		//		consoleText.setBorder(
+		//				BorderFactory.createCompoundBorder(
+		//						BorderFactory.createTitledBorder("Console"),
+		//						BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+		//		this.add(consoleText, BorderLayout.SOUTH);
+		//		consoleText.setEditable(false);
 
 		this.setVisible(true);
 	}
@@ -338,29 +335,31 @@ public class UiCompareFrame extends JFrame {
 	}
 
 	public void setLabelText(String text) {
-		String[] consoles = consoleText.getText().split("\n");
-
-		int length = consoles.length;
-		if (length >= 3) {
-			consoleText.setText(consoles[length - 3] + "\n" + consoles[length - 2] + "\n" + consoles[length - 1] + "\n" + text);
-		}
-		else if (length >= 2) {
-			consoleText.setText(consoles[length - 2] + "\n" + consoles[length - 1] + "\n" + text);
-		}
-		else if (length >= 1) {
-			consoleText.setText(consoles[length - 1] + "\n" + text);
-		}
-		else {
-			consoleText.setText(text);
-		}
-
-		consoleText.repaint();
-		//		refresh();
+		//		String[] consoles = consoleText.getText().split("\n");
+		//
+		//		int length = consoles.length;
+		//		if (length >= 3) {
+		//			consoleText.setText(consoles[length - 3] + "\n" + consoles[length - 2] + "\n" + consoles[length - 1] + "\n" + text);
+		//		}
+		//		else if (length >= 2) {
+		//			consoleText.setText(consoles[length - 2] + "\n" + consoles[length - 1] + "\n" + text);
+		//		}
+		//		else if (length >= 1) {
+		//			consoleText.setText(consoles[length - 1] + "\n" + text);
+		//		}
+		//		else {
+		//			consoleText.setText(text);
+		//		}
+		//
+		//		consoleText.repaint();
 	}
 
-	public void setDeviceName(String deviceName) {
-		deviceLabel.setText(deviceName);
-		refresh();
+	public void setDeviceName(final String deviceName) {
+		SwingUtilities.invokeLater(new Runnable() { //The EDT //explained below 
+					public void run() {
+						deviceLabel.setText(deviceName);
+					}
+				});
 	}
 
 	public void setScriptsName(String scriptList) {
@@ -374,9 +373,12 @@ public class UiCompareFrame extends JFrame {
 				newScriptList = newScriptList + "\n" + new File(scripts[i]).getName();
 			}
 		}
-		scriptsLabel.setText(newScriptList);
-
-		refresh();
+		final String text = newScriptList;
+		SwingUtilities.invokeLater(new Runnable() { //The EDT //explained below 
+					public void run() {
+						scriptsLabel.setText(text);
+					}
+				});
 	}
 
 	public boolean isEditorShown() {
@@ -390,5 +392,41 @@ public class UiCompareFrame extends JFrame {
 		this.setBounds(getX(), getY(), getWidth(), getHeight() + 1);
 		this.setBounds(getX(), getY(), getWidth(), getHeight() - 1);
 		this.repaint();
+	}
+
+	public void enableMenu() {
+		for (JMenuItem item : fileMenu) {
+			item.setEnabled(true);
+		}
+		for (JMenuItem item : deviceMenu) {
+			item.setEnabled(true);
+		}
+		for (JMenuItem item : editMenu) {
+			item.setEnabled(true);
+		}
+		for (JMenuItem item : helpMenu) {
+			item.setEnabled(true);
+		}
+		for (JMenu item : jMenu) {
+			item.setEnabled(true);
+		}
+	}
+
+	public void disableMenu() {
+		for (JMenuItem item : fileMenu) {
+			item.setEnabled(false);
+		}
+		for (JMenuItem item : deviceMenu) {
+			item.setEnabled(false);
+		}
+		for (JMenuItem item : editMenu) {
+			item.setEnabled(false);
+		}
+		for (JMenuItem item : helpMenu) {
+			item.setEnabled(false);
+		}
+		for (JMenu item : jMenu) {
+			item.setEnabled(false);
+		}
 	}
 }

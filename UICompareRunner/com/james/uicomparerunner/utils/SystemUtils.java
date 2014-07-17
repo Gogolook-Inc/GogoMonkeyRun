@@ -2,10 +2,8 @@
 package com.james.uicomparerunner.utils;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import com.james.uicomparerunner.UICompareRunner;
@@ -16,7 +14,7 @@ public class SystemUtils {
 	private static String OS = System.getProperty("os.name").toLowerCase();
 
 	public interface OnExecCallBack {
-		public void onExec(String line);
+		public void onExec(Process process, String line);
 
 		public void afterExec(String response, String error);
 	}
@@ -51,7 +49,7 @@ public class SystemUtils {
 		return (OS.indexOf("sunos") >= 0);
 	}
 
-	public static void exec(String cmd, OnExecCallBack onExecCallBack) {
+	public static void exec(final String cmd, final OnExecCallBack onExecCallBack) {
 		String s = null;
 		try {
 
@@ -74,7 +72,7 @@ public class SystemUtils {
 				System.out.println(s);
 				UICompareRunner.setLabelText(s);
 				if (onExecCallBack != null) {
-					onExecCallBack.onExec(s);
+					onExecCallBack.onExec(process, s);
 				}
 				if (response.equalsIgnoreCase("")) {
 					response = s;
@@ -107,26 +105,4 @@ public class SystemUtils {
 			System.exit(-1);
 		}
 	}
-
-	public static void restart() throws URISyntaxException, IOException {
-		final String javaBin = System.getProperty("java.home") + File.separator +
-				"bin" + File.separator + "java";
-		final File currentJar = new
-				File(UICompareRunner.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-
-		/* is it a jar file? */
-		if (!currentJar.getName().endsWith(".jar"))
-			return;
-
-		/* Build command: java -jar application.jar */
-		final ArrayList<String> command = new ArrayList<String>();
-		command.add(javaBin);
-		command.add("-jar");
-		command.add(currentJar.getPath());
-
-		final ProcessBuilder builder = new ProcessBuilder(command);
-		builder.start();
-		System.exit(0);
-	}
-
 }

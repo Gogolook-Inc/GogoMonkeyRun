@@ -1,15 +1,19 @@
 
 package com.james.uicomparerunner.ui.dialog;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FileDialog;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
 
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.james.uicomparerunner.UICompareRunner;
@@ -55,7 +59,13 @@ public class DialogBuilder {
 			dirChooser.setVisible(true);
 			String fileDir = null;
 			if (dirChooser.getFile() != null) {
-				fileDir = dirChooser.getDirectory() + File.separator + dirChooser.getFile();
+				String dir = dirChooser.getDirectory();
+				if (dir.endsWith(File.separator)) {
+					fileDir = dirChooser.getDirectory() + dirChooser.getFile();
+				}
+				else {
+					fileDir = dirChooser.getDirectory() + File.separator + dirChooser.getFile();
+				}
 			}
 
 			if (fileDir != null)
@@ -167,5 +177,51 @@ public class DialogBuilder {
 		}
 
 		return null;
+	}
+
+	public static JDialog showProgressDialog(JFrame parentFrame, final String message) {
+		final JDialog dialog = new JDialog(parentFrame, "Progress Dialog", true);
+		final JLabel progressLabel = new JLabel(message + "...");
+		progressLabel.setAlignmentX(JLabel.CENTER);
+		dialog.add(BorderLayout.NORTH, progressLabel);
+
+		final int maxProgress = 10;
+		final JProgressBar progressBar = new JProgressBar(0, maxProgress);
+		dialog.add(BorderLayout.CENTER, progressBar);
+
+		dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		dialog.setSize(320, 80);
+		dialog.setLocation(parentFrame.getX() + (parentFrame.getWidth() - 320) / 2, parentFrame.getY() + (parentFrame.getHeight() - 80) / 2);
+
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				dialog.setVisible(true);
+			}
+
+		}).start();
+
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				while (dialog.isShowing()) {
+					progressBar.setValue((progressBar.getValue() + 1) % maxProgress);
+
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}).start();
+
+		return dialog;
 	}
 }

@@ -578,7 +578,9 @@ public class MonkeyRecorderFrameExt extends JFrame implements ActionListener {
 		actionListModel.add(a);
 		scrollToBottom();
 		try {
-			a.execute(device);
+			if (!(a instanceof WaitAction)) {
+				a.execute(device);
+			}
 		} catch (Exception e) {
 			LOG.log(Level.SEVERE, "Unable to execute action!", e);
 		}

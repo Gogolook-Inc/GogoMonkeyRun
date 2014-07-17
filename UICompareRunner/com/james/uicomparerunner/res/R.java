@@ -44,7 +44,6 @@ public class R {
 		public static final String dialog_alert_no_devices = Locale.getDefault().equals(Locale.TAIWAN) ? "請確認是否已連接任何手機裝置或模擬器" : "Please confirm that any emulator/device is connected.";
 		public static final String dialog_alert_find_action_file = Locale.getDefault().equals(Locale.TAIWAN) ? "請選擇從\"monkey recorder模擬器\"中匯出的紀錄檔來產生腳本(副檔名為.mr)"
 				: "Please generate a script from a record(.mr).";
-		public static final String dialog_alert_create_script_ok = Locale.getDefault().equals(Locale.TAIWAN) ? "產生腳本成功，是否繼續編輯記錄檔" : "Complete Initializing Script. Continue to Edit Record?";
 		public static final String dialog_alert_file_disappear = Locale.getDefault().equals(Locale.TAIWAN) ? "選擇檔案不存在，請重新確認" : "The File is missing.";
 		public static final String dialog_alert_create_a_new_script = Locale.getDefault().equals(Locale.TAIWAN) ? "目前沒有測試腳本，是否產生一份新腳本?" : "No Scripts so far. Wouls you like to generate a new one?";
 		public static final String dialog_alert_set_as_target = Locale.getDefault().equals(Locale.TAIWAN) ? "是否設定此圖片為正確結果?" : "Set this picture as a correct one?";

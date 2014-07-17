@@ -5,10 +5,12 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,6 +21,7 @@ import java.util.Date;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -239,7 +242,7 @@ public class UICompareRunner {
 		SystemUtils.exec(adb + " " + "devices", new OnExecCallBack() {
 
 			@Override
-			public void onExec(String line) {
+			public void onExec(Process process, String line) {
 
 			}
 
@@ -261,12 +264,13 @@ public class UICompareRunner {
 				}
 
 				String selectDevice = DialogBuilder.showDeviceSelectDialog(uiCompareFrame, possibilities);
-				if (selectDevice != null)
+				if (selectDevice != null) {
 					PropertyUtils.saveProperty(PropertyUtils.KEY_DEVICE, selectDevice);
-				else
+				}
+				else {
 					PropertyUtils.saveProperty(PropertyUtils.KEY_DEVICE, originDevice);
-
-				initProperDir(null);
+				}
+				uiCompareFrame.setDeviceName(selectDevice);
 			}
 		});
 	}
@@ -291,7 +295,7 @@ public class UICompareRunner {
 	}
 
 	private static void recordNewAction() {
-		String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
+		final String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
 		if (device.equalsIgnoreCase(PropertyUtils.NULL)) {
 			setDefaultDevice(true);
 			recordNewAction();
@@ -299,15 +303,55 @@ public class UICompareRunner {
 		}
 
 		//
-		setLabelText("start record actions...");
-		SystemUtils.exec(monkey_runner + " " + monkey_recorder_file_path + " " + device + " " + "record" + " " + dir_device, null);
-		//
-		setLabelText("stop record actions...");
-		SystemUtils.exec(monkey_runner + " " + monkey_recorder_file_path + " " + device + " " + "close" + " " + dir_device, null);
-		//
-		// SystemUtils.exec(adb + " -s " + device + " usb", null);
-		//
-		generateScript();
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				uiCompareFrame.disableMenu();
+				JDialog dialog = DialogBuilder.showProgressDialog(uiCompareFrame, "start record actions");
+				setLabelText("start record actions...");
+				SystemUtils.exec(monkey_runner + " " + monkey_recorder_file_path + " " + device + " " + "record" + " " + dir_device, null);
+				dialog.setVisible(false);
+				uiCompareFrame.enableMenu();
+				//
+				setLabelText("stop record actions...");
+				try {
+					File currentDeviceModelFile = new File("python" + File.separator + "current_devices.txt");
+					BufferedReader currentReader = new BufferedReader(new FileReader(currentDeviceModelFile));
+					String currentDeviceModel = currentReader.readLine();
+					currentReader.close();
+
+					File exceptionDeviceModelsFile = new File("python" + File.separator + "exception_devices.txt");
+					FileReader exceptionReader = new FileReader(exceptionDeviceModelsFile);
+					BufferedReader exceptionreader = new BufferedReader(exceptionReader);
+					String exceptionModels = null;
+					String line = null;
+					while ((line = exceptionreader.readLine()) != null) {
+						if (exceptionModels == null) {
+							exceptionModels = "'" + line + "'";
+						}
+						else {
+							exceptionModels = exceptionModels + "," + "'" + line + "'";
+						}
+					}
+					exceptionreader.close();
+
+					if (!exceptionModels.contains(currentDeviceModel)) {
+						uiCompareFrame.disableMenu();
+						JDialog dialog2 = DialogBuilder.showProgressDialog(uiCompareFrame, "stop record actions");
+						SystemUtils.exec(monkey_runner + " " + monkey_recorder_file_path + " " + device + " " + "close" + " " + dir_device, null);
+						dialog2.setVisible(false);
+						uiCompareFrame.enableMenu();
+					}
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				generateScript();
+			}
+		}).start();
 	}
 
 	private static void generateScript() {
@@ -340,18 +384,8 @@ public class UICompareRunner {
 		PropertyUtils.saveProperty(PropertyUtils.KEY_LAST_SCRIPT, monkey_runner_file_path);
 		uiCompareFrame.setScriptsName(monkey_runner_file_path);
 
-		int re = DialogBuilder.showConfirmDialog(uiCompareFrame, R.string.dialog_alert_create_script_ok);
-		if (re == 1) {
-			//
-			int select = DialogBuilder.showConfirmDialog(uiCompareFrame, R.string.dialog_alert_run_script);
-			if (select == 0) {
-				startMonkeyRunner();
-			}
-		}
-		else {
-			//
-			loadRecorderAndEdit(mrPath);
-		}
+		//
+		loadRecorderAndEdit(mrPath);
 	}
 
 	private static void loadRecorderAndEdit(String recorderPath) {
@@ -406,10 +440,15 @@ public class UICompareRunner {
 
 	private static void startMonkeyRunner() {
 		//
+		System.out.println("check point 1");
 		final String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
+		System.out.println("check point 2, device: " + device);
 		if (device.equalsIgnoreCase(PropertyUtils.NULL)) {
+			System.out.println("check point 3");
 			setDefaultDevice(true);
+			System.out.println("check point 4");
 			startMonkeyRunner();
+			System.out.println("check point 5");
 			return;
 		}
 
@@ -420,7 +459,7 @@ public class UICompareRunner {
 			return;
 		}
 
-		String[] monkey_runner_file_path = path.split(",");
+		final String[] monkey_runner_file_path = path.split(",");
 
 		for (String currentPath : monkey_runner_file_path) {
 			if (currentPath == null || !new File(currentPath).exists()) {
@@ -434,44 +473,57 @@ public class UICompareRunner {
 
 		uiCompareFrame.removeAll();
 
-		monitorLogcat();
+		monitorLogcat(false);
 
-		for (String currentPath : monkey_runner_file_path) {
+		new Thread(new Runnable() {
 
-			initProperDir(currentPath);
+			@Override
+			public void run() {
 
-			FileUtils.deletePicturesInDirectory(new File(dir_device_picture));
+				for (String currentPath : monkey_runner_file_path) {
 
-			//
-			setLabelText("start running " + new File(currentPath).getName() + " on " + device + ", please wait.");
-			SystemUtils.exec(monkey_runner + " " + currentPath + " " + device + " " + dir_device_picture, null);
+					initProperDir(currentPath);
 
-			FileUtils.deletePicturesInDirectory(new File(dir_device_test_picture));
-			FileUtils.copyFilesFromDirToDir(dir_device_picture, dir_device_test_picture);
+					FileUtils.deletePicturesInDirectory(new File(dir_device_picture));
 
-			String[] testPictures = new File(dir_device_test_picture).list();
-			ArrayList<String> testPictureList = new ArrayList<String>(Arrays.asList(testPictures));
-			String[] targetPictures = new File(dir_device_target_picture).list();
-			ArrayList<String> targetPictureList = new ArrayList<String>(Arrays.asList(targetPictures));
-			for (int i = 0; i < testPictureList.size(); i++) {
-				String fileName = testPictureList.get(i);
-				if (!targetPictureList.contains(testPictureList.get(i))) {
-					try {
-						File fromFile = new File(dir_device_test_picture + File.separator + fileName);
-						File toFile = new File(dir_device_target_picture + File.separator + fileName);
-						FileUtils.copyFileFromFileToFile(fromFile, toFile);
-					} catch (FileNotFoundException e) {
-						e.printStackTrace();
-					} catch (IOException e) {
-						e.printStackTrace();
+					//
+					setLabelText("start running " + new File(currentPath).getName() + " on " + device + ", please wait.");
+					uiCompareFrame.disableMenu();
+					JDialog dialog = DialogBuilder.showProgressDialog(uiCompareFrame, "start running " + new File(currentPath).getName() + " on " + device + ", please wait");
+					SystemUtils.exec(monkey_runner + " " + currentPath + " " + device + " " + dir_device_picture, null);
+					dialog.setVisible(false);
+					uiCompareFrame.enableMenu();
+
+					FileUtils.deletePicturesInDirectory(new File(dir_device_test_picture));
+					FileUtils.copyFilesFromDirToDir(dir_device_picture, dir_device_test_picture);
+
+					String[] testPictures = new File(dir_device_test_picture).list();
+					ArrayList<String> testPictureList = new ArrayList<String>(Arrays.asList(testPictures));
+					String[] targetPictures = new File(dir_device_target_picture).list();
+					ArrayList<String> targetPictureList = new ArrayList<String>(Arrays.asList(targetPictures));
+					for (int i = 0; i < testPictureList.size(); i++) {
+						String fileName = testPictureList.get(i);
+						if (!targetPictureList.contains(testPictureList.get(i))) {
+							try {
+								File fromFile = new File(dir_device_test_picture + File.separator + fileName);
+								File toFile = new File(dir_device_target_picture + File.separator + fileName);
+								FileUtils.copyFileFromFileToFile(fromFile, toFile);
+							} catch (FileNotFoundException e) {
+								e.printStackTrace();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
 					}
+
+					FileUtils.deletePicturesInDirectory(new File(dir_device_picture));
 				}
+
+				generateResult(true);
+
+				monitorLogcat(true);
 			}
-
-			FileUtils.deletePicturesInDirectory(new File(dir_device_picture));
-		}
-
-		generateResult(true);
+		}).start();
 
 	}
 
@@ -728,7 +780,7 @@ public class UICompareRunner {
 		SystemUtils.exec(UICompareRunner.adb + " shell pm list packages", new OnExecCallBack() {
 
 			@Override
-			public void onExec(String line) {
+			public void onExec(Process process, String line) {
 
 			}
 
@@ -736,14 +788,13 @@ public class UICompareRunner {
 			public void afterExec(String response, String error) {
 				String[] packages = response.split("\n");
 				packaeNames.addAll(new ArrayList<String>(Arrays.asList(packages)));
+
+				if (!packaeNames.contains("package:" + package_name)) {
+					DialogBuilder.showMessageDialog(uiCompareFrame, R.string.dialog_alert_package_name_error);
+					package_name = "gogolook.callgogolook2";
+				}
 			}
 		});
-
-		if (!packaeNames.contains("package:" + package_name)) {
-			DialogBuilder.showMessageDialog(uiCompareFrame, R.string.dialog_alert_package_name_error);
-			package_name = "gogolook.callgogolook2";
-			return;
-		}
 	}
 
 	public static void setLabelText(String text) {
@@ -765,10 +816,22 @@ public class UICompareRunner {
 			}
 		}
 
-		monitorLogcat();
+		monitorLogcat(false);
 
 		final String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
-		SystemUtils.exec(adb + " -s " + device + " shell monkey -p " + package_name + " -v " + count, null);
+		SystemUtils.exec(adb + " -s " + device + " shell monkey -p " + package_name + " -v " + count, new OnExecCallBack() {
+
+			@Override
+			public void onExec(Process process, String line) {
+
+			}
+
+			@Override
+			public void afterExec(String response, String error) {
+				monitorLogcat(true);
+			}
+		});
+
 	}
 
 	private static void setEmailForCrashReport(boolean reset) {
@@ -820,13 +883,17 @@ public class UICompareRunner {
 	private static Thread logcatThread;
 	private static String errorLog = null;
 
-	private static void monitorLogcat() {
+	private static void monitorLogcat(boolean cancel) {
 		final String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
 		SystemUtils.exec(adb + " -s " + device + " logcat -c", null);
 
 		if (logcatThread != null && logcatThread.isAlive()) {
 			logcatThread.interrupt();
 			logcatThread = null;
+		}
+		if (cancel) {
+			System.out.println("Finish Monitoring Logcat");
+			return;
 		}
 
 		Date date = new Date();
@@ -849,7 +916,8 @@ public class UICompareRunner {
 				SystemUtils.exec(adb + " -s " + device + " logcat System.err:W *:S", new OnExecCallBack() {
 
 					@Override
-					public void onExec(String line) {
+					public void onExec(Process process, String line) {
+						// TODO
 						if (!line.contains("System.err"))
 							return;
 						try {
@@ -874,12 +942,16 @@ public class UICompareRunner {
 							String password = PropertyUtils.loadProperty(PropertyUtils.KEY_FROM_EMAIL_PASSWORD, PropertyUtils.NULL);
 							if (username.equalsIgnoreCase(PropertyUtils.NULL) || password.equalsIgnoreCase(PropertyUtils.NULL)) {
 								errorLog = null;
+
+								process.destroy();
 								return;
 							}
 
 							String subject = "[no-reply] Crash Report From GogoMonkeyRun";
 							EmailUtils.send(username, password, username, subject, errorLog);
 							errorLog = null;
+
+							process.destroy();
 						}
 					}
 
@@ -945,7 +1017,7 @@ public class UICompareRunner {
 					SystemUtils.exec(adb + " " + "devices", new OnExecCallBack() {
 
 						@Override
-						public void onExec(String line) {
+						public void onExec(Process process, String line) {
 
 						}
 

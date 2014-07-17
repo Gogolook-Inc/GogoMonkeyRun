@@ -53,12 +53,11 @@ if not device:
 	print("device connect...fail")
 	sys.exit(1)
 
-deviceModel = device.getProperty('build.model')
-print(deviceModel)
-setCurrentModel(deviceModel)
-
 if action == 'record':
 	print("start monkey recorder")
+	deviceModel = device.getProperty('build.model')
+	print(deviceModel)
+	setCurrentModel(deviceModel)
 	MonkeyRecorderExt.start(device, defaultExportDir)
 else:
 	print("close monkey recorder: ")

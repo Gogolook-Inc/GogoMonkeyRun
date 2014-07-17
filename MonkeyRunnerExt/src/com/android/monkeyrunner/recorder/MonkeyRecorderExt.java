@@ -44,6 +44,7 @@ public class MonkeyRecorderExt {
 		// TODO: this is a hack until the window listener works.
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		frame.addWindowListener(new WindowAdapter() {
+
 			@Override
 			public void windowClosed(WindowEvent e) {
 				device.shell("stop");
