@@ -36,7 +36,7 @@ GogoMonkeyRun
 <br>
 ![Files needed](https://dl.dropboxusercontent.com/u/43934047/GogoMonkeyRun/github_image/file_needed.png)
 <br>These files are needed in the same directory.
-<br>Double-click UICompare.jar to open application.
+<br>Double-click Application.jar to open application.
 <br>
 ## First Time to Open Application
 ![Set SDK path](https://dl.dropboxusercontent.com/u/43934047/GogoMonkeyRun/github_image/set_sdk_path.png)
