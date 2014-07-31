@@ -1,3 +1,6 @@
+# this is a test python for old version monkeyrunner
+# no need to use this file
+
 import sys,traceback
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice, MonkeyImage
 
