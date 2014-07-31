@@ -1,3 +1,4 @@
+import os
 import sys,traceback
 # Imports the monkeyrunner modules used by this program
 from com.android.monkeyrunner import MonkeyRunner, MonkeyDevice
@@ -17,6 +18,14 @@ def getCurrentModel():
 	deviceModel = file.readline()
 	file.close() # you can omit in most cases as the destructor will call if
 	return deviceModel
+	
+def getExceptionModels():
+	rel_path = "exception_devices.txt"
+	abs_file_path = os.path.join(script_dir, rel_path)
+	file = open(abs_file_path, "r")
+	list = [line.strip() for line in file]
+	file.close()
+	return list
 
 device_name = getDevice()
 apk_name = getApk();
@@ -37,7 +46,8 @@ device.installPackage(apk_name)
 
 print ("installPackage...Complete")
 
-list = getEceptionModels()
+currentModel = getCurrentModel()
+list = getExceptionModels()
 if not currentModel in list:
 	print("not contain "+currentModel)
 	device.shell("stop")

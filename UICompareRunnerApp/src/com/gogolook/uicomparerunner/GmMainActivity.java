@@ -50,7 +50,6 @@ public class GmMainActivity extends Activity implements OnClickListener {
 		setView();
 
 		setListener();
-
 	}
 
 	private void setLayout() {

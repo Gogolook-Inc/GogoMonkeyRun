@@ -31,7 +31,7 @@ def getCurrentModel():
 	file.close() # you can omit in most cases as the destructor will call if
 	return deviceModel
 	
-def getEceptionModels():
+def getExceptionModels():
 	rel_path = "exception_devices.txt"
 	abs_file_path = os.path.join(script_dir, rel_path)
 	file = open(abs_file_path, "r")
@@ -62,7 +62,7 @@ if action == 'record':
 else:
 	print("close monkey recorder: ")
 	currentModel = getCurrentModel()
-	list = getEceptionModels()
+	list = getExceptionModels()
 	if not currentModel in list:
 		print("not contain "+currentModel)
 		device.shell("stop")

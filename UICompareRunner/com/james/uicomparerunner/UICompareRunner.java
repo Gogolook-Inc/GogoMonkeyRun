@@ -723,36 +723,52 @@ public class UICompareRunner {
 	private static void selectAPKtoInstall() {
 		//
 		apkName = DialogBuilder.showFindApkFileDialog(uiCompareFrame, getAllApks());
-		installApk(apkName);
+		installApk();
 	}
 
-	private static void installApk(String apkName) {
+	private static void installApk() {
+		final JDialog dialog = DialogBuilder.showProgressDialog(uiCompareFrame, "Installing apk: " + apkName);
 		System.out.println("install apk: " + apkName);
-		if (apkName == null) {
-			if (socketServer != null && socketServer.isConnected()) {
-				socketServer.write(SocketInstruction.ERROR_MESSAGE + SocketInstruction.separator + "apk does not exist");
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				if (apkName == null) {
+					if (socketServer != null && socketServer.isConnected()) {
+						socketServer.write(SocketInstruction.ERROR_MESSAGE + SocketInstruction.separator + "apk does not exist");
+					}
+					DialogBuilder.showMessageDialog(uiCompareFrame, "Installing Fail for No Apk Found.");
+					dialog.setVisible(false);
+					return;
+				}
+				File apkDir = new File("apks");
+				apkName = apkDir.getAbsolutePath() + File.separator + apkName;
+				if (!new File(apkName).exists()) {
+					if (socketServer != null && socketServer.isConnected()) {
+						socketServer.write(SocketInstruction.ERROR_MESSAGE + SocketInstruction.separator + "apk does not exist");
+					}
+					DialogBuilder.showMessageDialog(uiCompareFrame, "Installing Fail for No Apk Found.");
+					dialog.setVisible(false);
+					return;
+				}
+
+				String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
+				if (device.equalsIgnoreCase(PropertyUtils.NULL)) {
+					dialog.setVisible(false);
+					DialogBuilder.showMessageDialog(uiCompareFrame, "Installing Fail for No Devices Found.");
+					return;
+				}
+				SystemUtils.exec(monkey_runner + " " + monkey_installer_file_path + " " + device + " " + apkName, null);
+
+				apkName = null;
+
+				if (socketServer != null && socketServer.isConnected()) {
+					socketServer.write(SocketInstruction.COMPLETE_INSTALLING_APK);
+				}
+				dialog.setVisible(false);
+				DialogBuilder.showMessageDialog(uiCompareFrame, "Installing Complete");
 			}
-			return;
-		}
-		File apkDir = new File("apks");
-		apkName = apkDir.getAbsolutePath() + File.separator + apkName;
-		if (!new File(apkName).exists()) {
-			if (socketServer != null && socketServer.isConnected()) {
-				socketServer.write(SocketInstruction.ERROR_MESSAGE + SocketInstruction.separator + "apk does not exist");
-			}
-			return;
-		}
-
-		String device = PropertyUtils.loadProperty(PropertyUtils.KEY_DEVICE, PropertyUtils.NULL);
-		if (device.equalsIgnoreCase(PropertyUtils.NULL))
-			return;
-		SystemUtils.exec(monkey_runner + " " + monkey_installer_file_path + " " + device + " " + apkName, null);
-
-		apkName = null;
-
-		if (socketServer != null && socketServer.isConnected()) {
-			socketServer.write(SocketInstruction.COMPLETE_INSTALLING_APK);
-		}
+		}).start();
 	}
 
 	private static String[] getAllApks() {
@@ -1086,7 +1102,7 @@ public class UICompareRunner {
 				}
 				else if (recieve.startsWith(SocketInstruction.SET_APK)) {
 					apkName = recieve.split(SocketInstruction.separator)[1];
-					installApk(apkName);
+					installApk();
 				}
 			}
 		}).waitForConnection();

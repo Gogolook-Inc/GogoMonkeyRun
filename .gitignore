@@ -20,3 +20,10 @@ local.properties
 *.properties
 
 *.prefs
+
+*.mr
+*.html
+*.png
+*.apk
+*log.txt
+*/CB5A1N21LE/*

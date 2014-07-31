@@ -41,7 +41,7 @@ public class GmMainLayout extends FreeLayout {
 				new int[] {
 					ALIGN_PARENT_TOP
 				});
-		addressEdit.setText("192.168.23.21");
+		addressEdit.setText("192.168.43.143");
 		addressEdit.setInputType(InputType.TYPE_CLASS_NUMBER);
 		setPadding(addressEdit, 15, 0, 15, 0);
 
