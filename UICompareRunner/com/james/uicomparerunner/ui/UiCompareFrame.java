@@ -78,7 +78,7 @@ public class UiCompareFrame extends JFrame {
 	private JScrollPane scrollpane;
 	private Box contentPanel;
 	private JLabel deviceLabel;
-	private JLabel scriptsLabel;
+	private Box scriptBox;
 	//	private JTextPane consoleText;
 
 	private OnReplaceClickListener mOnReplaceClickListener;
@@ -163,8 +163,8 @@ public class UiCompareFrame extends JFrame {
 						BorderFactory.createEmptyBorder(5, 5, 5, 5)));
 		informationPanel.add(scriptsTitle);
 
-		scriptsLabel = new JLabel();
-		informationPanel.add(scriptsLabel);
+		scriptBox = Box.createVerticalBox();
+		informationPanel.add(scriptBox);
 
 		//		consoleText = new JTextPane();
 		//		consoleText.setBorder(
@@ -363,20 +363,16 @@ public class UiCompareFrame extends JFrame {
 	}
 
 	public void setScriptsName(String scriptList) {
-		String newScriptList = null;
-		String[] scripts = scriptList.split(",");
-		for (int i = 0; i < scripts.length; i++) {
-			if (newScriptList == null) {
-				newScriptList = new File(scripts[i]).getName();
-			}
-			else {
-				newScriptList = newScriptList + "\n" + new File(scripts[i]).getName();
-			}
-		}
-		final String text = newScriptList;
+		scriptBox.removeAll();
+		final String[] scripts = scriptList.split(",");
+
 		SwingUtilities.invokeLater(new Runnable() { //The EDT //explained below 
 					public void run() {
-						scriptsLabel.setText(text);
+						for (int i = 0; i < scripts.length; i++) {
+							JLabel textLabel = new JLabel();
+							textLabel.setText(new File(scripts[i]).getName());
+							scriptBox.add(textLabel);
+						}
 					}
 				});
 	}
